@@ -1,0 +1,12 @@
+
+	    <select id="views_list" multiple="multiple" name="views_list">
+		<% for (var i = 0; i < available_views.length; i++) { %>
+		   <% if( available_views[i].content.isVisible ) { %>
+		       <% if( available_views[i].content.label ) { %>
+		   <option value="<%- available_views[i].name %>"><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
+		       <% } else { %>
+		   <option value="<%- available_views[i].name %>"><%- available_views[i].name %></option>
+		       <% } %>
+		   <% } %>
+		<% } %>
+		</select>

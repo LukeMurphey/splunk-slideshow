@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<form script="slideshow_setup.js" >
+	<label>Setup s show</label>
+	
+	<row>
+		<html>
+			<div id="slideshow_setup_screen"></div>
+		</html>
+	</row>
+</form>
