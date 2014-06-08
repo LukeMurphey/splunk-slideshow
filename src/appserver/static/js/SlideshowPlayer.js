@@ -66,7 +66,7 @@ SplunkSlideshow.getNextView = function(){
 	 var index_of_current_view = null;
 	 
 	 for(var c = 0; c < views.length; c++){
-		 if( views[c] === current_view ){
+		 if( views[c].name === current_view ){
 			 index_of_current_view = c;
 			 break;
 		 }
@@ -108,6 +108,6 @@ SplunkSlideshow.scheduleNextView = function(){
 	 // Setup the changing to the new view
 	 setTimeout( function(){
 		 console.log("Changing to next view in show");
-		 document.location = next_view;
+		 document.location = next_view.name;
 	 }, 1000 * delay );
 }

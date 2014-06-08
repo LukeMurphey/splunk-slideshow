@@ -55,18 +55,62 @@ define([
         },
         
         /**
+         * Validate the given field
+         */
+        validateField: function(field_selector, val, message, test_function){
+            if( !test_function(val) ){
+                $(".help-inline", field_selector).show().text(message);
+                $(field_selector).addClass('error');
+                return 1;
+            }
+            else{
+                $(".help-inline", field_selector).hide();
+                $(field_selector).removeClass('error');
+                return 0;
+            }
+        },
+        
+        /**
          * Validate the form values.
          */
         validate: function(){
         	
-        	// Make sure some views were selected
-        	if( !$('[name="views_list"]', this.$el).val() ){
-        		return false;
-        	}
+        	var failures = 0;
         	
-        	return true;
+            // Verify that the delay is a valid integer between 1 and 100,000
+            failures += this.validateField( $('#delay_control_group'), $('[name="delay"]').val(), "Must be a valid integer of at least 1",
+                    function(val){ 
+                        return this.parseIntIfValid(val, 10) > 0 && this.parseIntIfValid(val, 10) < 100000;
+                    }.bind(this)
+            );
+            
+            // Verify that at least one view has been selected
+            failures += this.validateField( $('#views_control_group'), $('[name="views_list"]').val(), "Must select at least one view",
+                    function(val){ 
+                        return val !== undefined && val !== null;
+                    }
+            );
+        	
+            return failures === 0;
         },
         
+        /**
+         * Get the detailed information about the view that matches the given name.
+         */
+        getViewForName: function(name){
+        	
+    		// Find the view meta-data associated with this selected view
+    		for( var c = 0; c < this.available_views.length; c++){
+    			
+    			if(this.available_views[c].name == name){
+    				return this.available_views[c];
+    			}
+    		}
+        },
+        
+        /**
+         * Start the show.
+         */
         startShow: function(){
         	
         	// Make sure the settings are valid
@@ -75,14 +119,25 @@ define([
         		return false;
         	}
         	
-        	var views = $('[name="views_list"]', this.$el).val();
+        	var selected_views = $('[name="views_list"]', this.$el).val();
+        	var views = [];
+        	
+        	for( var c = 0; c < selected_views.length; c++){
+        		
+        		var view_meta = this.getViewForName(selected_views[c]);
+        		
+        		views.push({
+        			'name' : selected_views[c],
+        			'app'  : view_meta.content['eai:appName']
+        		})
+        	}
         	
         	store.set('views', views );
         	store.set('view_delay', $('[name="delay"]').val() );
         	store.set('in_slideshow', true );
         	
         	// Start at the first page
-        	document.location = views[0];
+        	document.location = views[0].name;
         },
         
         /**
@@ -100,6 +155,9 @@ define([
         	}
         },
         
+        /**
+         * Get the list of available views.
+         */
         retrieveViews: function(){
         	
         	// Prepare the arguments
@@ -150,12 +208,19 @@ define([
         	if(!selected_views){
         		selected_views = [];
         	}
+
+        	// Extract a list of just the view names
+        	var selected_views_names = [];
+    		
+    		for( var c = 0; c < selected_views.length; c++){
+    			selected_views_names.push(selected_views[c].name);
+    		}
         	
         	// Render the HTML
         	this.$el.html(_.template(SlideshowSetupPageTemplate,{
         		available_views: this.available_views,
         		delay: delay,
-        		selected_views: selected_views
+        		selected_views: selected_views_names
         	}) );
         	
         	// Convert the list into a nice dual-list
