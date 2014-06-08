@@ -1,12 +1,28 @@
 
+	<fieldset>
+		<legend>Views to Display</legend>
 	    <select id="views_list" multiple="multiple" name="views_list">
 		<% for (var i = 0; i < available_views.length; i++) { %>
 		   <% if( available_views[i].content.isVisible ) { %>
 		       <% if( available_views[i].content.label ) { %>
-		   <option value="<%- available_views[i].name %>"><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
+		   <option value="<%- available_views[i].name %>" <% if( $.inArray(available_views[i].name, selected_views) >= 0 ){ %>selected<% } %>><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
 		       <% } else { %>
 		   <option value="<%- available_views[i].name %>"><%- available_views[i].name %></option>
 		       <% } %>
 		   <% } %>
 		<% } %>
 		</select>
+	</fieldset>
+		<!-- 
+	<h3>Options</h3>
+ -->
+	  <fieldset>
+	    <legend>Options</legend>
+	    <label>Delay</label>
+	    <input type="text" name="delay" placeholder="for example, 60, for a 60 second delay" value="<%- delay %>">
+	    <span class="help-block">Defines how long (in seconds) to shoe each view before changing to the next one</span>
+	  </fieldset>
+		
+	<div class="controls">
+		<button id="start_show" class="btn btn-primary pull-right">Start show</button>
+	</div>

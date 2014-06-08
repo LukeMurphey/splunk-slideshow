@@ -1,8 +1,14 @@
 require.config({
     paths: {
         text: "../app/slideshow/contrib/text",
-        bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min"
-    }
+        bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min",
+        store: "../app/slideshow/contrib/store.min",
+    },
+	shim: {
+	    'store': {
+	    	exports: 'store'
+	    }
+	}
 });
 
 define([
@@ -15,10 +21,11 @@ define([
     "splunkjs/mvc/simpleform/input/dropdown",
     "splunkjs/mvc/simpleform/input/text",
     "text!../app/slideshow/js/templates/SlideshowSetupPage.html",
+    "store",
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
-], function(_, Backbone, mvc, $, SimpleSplunkView, FormUtils, DropdownInput, TextInput, SlideshowSetupPageTemplate){
+], function(_, Backbone, mvc, $, SimpleSplunkView, FormUtils, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
 	
     // Define the custom view class
     var SlideshowSetupView = SimpleSplunkView.extend({
@@ -36,7 +43,7 @@ define([
          * Wire up the events
          */
         events: {
-        	"click .btn-save" : "save"
+        	"click #start_show" : "startShow"
         },
         
         initialize: function() {
@@ -48,34 +55,34 @@ define([
         },
         
         /**
-         * Set the dialog such that it is showing saving progress.
+         * Validate the form values.
          */
-        showSaving: function(saving){
+        validate: function(){
         	
-        	if(saving){
-        		$("#save", this.$el).text("Saving...");
-            	$("#cancel", this.$el).attr("disabled", "true");
-        	}
-        	else{
-        		$("#save", this.$el).text("Save");
-            	$("#cancel", this.$el).attr("disabled", "false");
+        	// Make sure some views were selected
+        	if( !$('[name="views_list"]', this.$el).val() ){
+        		return false;
         	}
         	
+        	return true;
         },
         
-        /**
-         * Show the warning message.
-         */
-        hideWarning: function(){
-        	$('#warning-message', this.$el).hide();
-        },
-        
-        /**
-         * Show the warning message.
-         */
-        showWarning: function(message){
-        	$('#warning-message-text', this.$el).text(message);
-        	$('#warning-message', this.$el).show();
+        startShow: function(){
+        	
+        	// Make sure the settings are valid
+        	if( !this.validate() ){
+        		//Show cannot be started, something doesn't validate
+        		return false;
+        	}
+        	
+        	var views = $('[name="views_list"]', this.$el).val();
+        	
+        	store.set('views', views );
+        	store.set('view_delay', $('[name="delay"]').val() );
+        	store.set('in_slideshow', true );
+        	
+        	// Start at the first page
+        	document.location = views[0];
         },
         
         /**
@@ -98,6 +105,7 @@ define([
         	// Prepare the arguments
             var params = new Object();
             params.output_mode = 'json';
+            params.count = '-1';
             
             var uri = Splunk.util.make_url('/splunkd/services/data/ui/views');
             uri += '?' + Splunk.util.propToQueryString(params);
@@ -118,36 +126,6 @@ define([
         },
         
         /**
-         * Validate the form values.
-         */
-        validate: function(){
-        	
-        	/*
-            if(!this.parseIntIfValid(mvc.Components.get("risk_score").val())){
-            	this.showWarning("The risk score must be a valid integer");
-            	return false;
-            }
-            
-            if(mvc.Components.get("risk_object").val() === "" ){
-            	this.showWarning("The risk object must be defined");
-            	return false;
-            }
-            
-            if(mvc.Components.get("risk_object_type").val() === ""){
-            	this.showWarning("The risk object type must be selected");
-            	return false;
-            }
-            
-            if(mvc.Components.get("risk_description").val() === ""){
-            	this.showWarning("The risk description must be provided");
-            	return false;
-            }
-            */
-        	
-            return true;
-        },
-        
-        /**
          * Render the page
          */
         render: function(){
@@ -160,10 +138,27 @@ define([
          */
         _render: function(){
         	
+        	// Try to load the views from local storage
+        	var delay = store.get('view_delay');
+        	var selected_views = store.get('views');
+        	
+        	// Setup the defaults
+        	if(!delay){
+        		delay = "";
+        	}
+        	
+        	if(!selected_views){
+        		selected_views = [];
+        	}
+        	
+        	// Render the HTML
         	this.$el.html(_.template(SlideshowSetupPageTemplate,{
-        		available_views: this.available_views
+        		available_views: this.available_views,
+        		delay: delay,
+        		selected_views: selected_views
         	}) );
         	
+        	// Convert the list into a nice dual-list
         	$('[name="views_list"]').bootstrapDualListbox( { 
         		bootstrap2Compatible : true,
         		nonselectedlistlabel: 'Available',
