@@ -7,7 +7,10 @@ require.config({
 	shim: {
 	    'store': {
 	    	exports: 'store'
-	    }
+	    },
+    	'bootstrap_dualist': {
+    		deps: ['jquery']
+    	}
 	}
 });
 
