@@ -188,8 +188,19 @@ define([
          * Render the page
          */
         render: function(){
-        	// Stop the show unless the user specifically requests starting it
-        	store.set('in_slideshow', false );
+        	
+        	if( store && store.enabled ){
+        		
+        		// Stop the show until the user specifically requests starting it
+        		store.set('in_slideshow', false );
+        	}
+        	else{
+        		
+        		this.$el.html('<h3>Local Storage Not Supported</h3>Local storage is not supported by the web browser; the slideshow will not function without it.' +
+        				      'Local storage is not supported on older browsers (such as Internet Explorer 7 and earlier) or when browsers are in "private mode".<br /><br />' + 
+        				      'See <a target="_blank" href="http://caniuse.com/namevalue-storage">more information</a> about browser compatibilty with local storage.');
+        		return;
+        	}
         	
         	// Get the list of views. This function will finish rendering the dialog.
         	this.retrieveViews();

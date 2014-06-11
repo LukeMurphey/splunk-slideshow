@@ -8,11 +8,31 @@ SplunkSlideshow.interval = 500;
 SplunkSlideshow.nextView = null;
 
 /**
+ * Determine if local storage is supported and available.
+ */
+SplunkSlideshow.isStoreAvailable = function(){
+	if( store && store.enabled ){
+		return true;
+	}
+	else{
+		console.warn("Local storage is not available, the slideshow player will not be able to continue");
+		return false;
+	}
+}
+
+/**
  * Start running a show if necessary.
  */
 SplunkSlideshow.startShow = function(){
-	 
-	 if( !SplunkSlideshow.isOnSetupPage() && SplunkSlideshow.isRunningShow() ){
+	
+	// Make sure that local storage is available
+	if( !SplunkSlideshow.isStoreAvailable() ){
+		alert("Local storage support is not available, the slideshow will not function");
+		return;
+	}
+	
+	// Schedule the next view if the slideshow is in progress.
+	if( !SplunkSlideshow.isOnSetupPage() && SplunkSlideshow.isRunningShow() ){
 		 
 		 SplunkSlideshow.scheduleNextView();
 		 
