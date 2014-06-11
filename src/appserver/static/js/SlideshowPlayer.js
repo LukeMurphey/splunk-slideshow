@@ -1,12 +1,29 @@
 var SplunkSlideshow = {};
 
+SplunkSlideshow.timeSpent = 0;
+SplunkSlideshow.isRunning = false;
+SplunkSlideshow.intervalID = null;
+SplunkSlideshow.delay = 60 * 1000;
+SplunkSlideshow.interval = 500;
+SplunkSlideshow.nextView = null;
+
 /**
  * Start running a show if necessary.
  */
 SplunkSlideshow.startShow = function(){
 	 
 	 if( !SplunkSlideshow.isOnSetupPage() && SplunkSlideshow.isRunningShow() ){
+		 
 		 SplunkSlideshow.scheduleNextView();
+		 
+		// Load the app specific resources
+		 if( store.get('load_app_resources') ){
+			 var current_view = SplunkSlideshow.getCurrentView();
+			 
+			 if( current_view ){
+			 	SplunkSlideshow.loadAppResources(current_view.app);
+			 }
+		 }
 	 }
 }
 
@@ -37,9 +54,61 @@ SplunkSlideshow.isOnSetupPage = function(){
 }
 
 /**
- * Get the next view in the list to show.
+ * Pause the countdown.
  */
-SplunkSlideshow.getNextView = function(){
+SplunkSlideshow.pause = function(){
+	 return SplunkSlideshow.isRunning = false;
+}
+
+/**
+ * Un-pause the countdown.
+ */
+SplunkSlideshow.unpause = function(){
+	 return SplunkSlideshow.isRunning = true;
+}
+
+/**
+ * Do the next step in the countdown.
+ */
+SplunkSlideshow.doCountdown = function(){
+	
+	SplunkSlideshow.timeSpent += SplunkSlideshow.interval;
+	
+	// If it is time to change views, then do this now
+	if( SplunkSlideshow.timeSpent >= SplunkSlideshow.delay){
+		console.log("Changing to next view in show");
+		document.location = SplunkSlideshow.nextView.name;
+		NProgress.set(1.0);
+		clearInterval(SplunkSlideshow.intervalID);
+		return;
+	}
+	else{
+		NProgress.set( (1.0 * SplunkSlideshow.timeSpent) / SplunkSlideshow.delay );
+	}
+}
+
+/**
+ * Get a reference to the current view.
+ */
+SplunkSlideshow.getCurrentView = function(){
+	var i = this.getCurrentViewIndex();
+	
+	// Get the views in the show
+	var views = store.get('views');
+	
+	if( i !== null ){
+		return views[i];
+	}
+	else{
+		return null;
+	}
+	
+}
+
+/**
+ * Get the index of the current view in the list of available views.
+ */
+SplunkSlideshow.getCurrentViewIndex = function(){
 	 
 	 // Get the views in the show
 	 var views = store.get('views');
@@ -72,16 +141,37 @@ SplunkSlideshow.getNextView = function(){
 		 }
 	 }
 	 
+	 return index_of_current_view;
+}
+
+/**
+ * Get the next view in the list to show.
+ */
+SplunkSlideshow.getNextView = function(){
+	 
+	 // Find the next view
+	 var index_of_current_view = SplunkSlideshow.getCurrentViewIndex();
+	 var index_of_next_view = null;
+	 
+	 if( index_of_current_view === null ){
+		 return null;
+	 }
+	 
+	 // Get the views in the show
+	 var views = store.get('views');
+	 
 	 // If we are at the last entry in the list, then rotate to the first one
 	 if( (index_of_current_view + 1) >= views.length){
-		 index_of_current_view = 0;
+		 index_of_next_view = 0;
 	 }
+	 
+	 // Increment to the next view
 	 else{
-		 index_of_current_view++;
+		 index_of_next_view = index_of_current_view + 1;
 	 }
 	 
 	 // Return the view
-	 return views[index_of_current_view];
+	 return views[index_of_next_view];
 }
 
 /**
@@ -97,6 +187,9 @@ SplunkSlideshow.scheduleNextView = function(){
 		 return;
 	 }
 	 
+	 // Store the next page to show
+	 SplunkSlideshow.nextView = next_view;
+	 
 	 // Get the view delay
 	 var delay = store.get('view_delay');
 	 
@@ -105,9 +198,63 @@ SplunkSlideshow.scheduleNextView = function(){
 		 delay = 60;
 	 }
 	 
+	 // Convert the delay to milliseconds and save the value
+	 SplunkSlideshow.delay = delay * 1000;
+	 
+	 // Start the progress indicator
+	 NProgress.configure({ showSpinner: false });
+	 NProgress.set(0.0);
+	 
 	 // Setup the changing to the new view
-	 setTimeout( function(){
-		 console.log("Changing to next view in show");
-		 document.location = next_view.name;
-	 }, 1000 * delay );
+	 SplunkSlideshow.intervalID = setInterval( function(){
+		 SplunkSlideshow.doCountdown();
+	 }.bind(this), SplunkSlideshow.interval );
+}
+
+/**
+ * Load the given Javascript file.
+ */
+SplunkSlideshow.addJavascript = function( filename, callback ){	
+	var script = document.createElement('script');
+	script.setAttribute("type","text/javascript");
+	script.setAttribute("src", filename);
+	document.getElementsByTagName("head")[0].appendChild(script);
+	
+	if( callback ){
+		script.onload = function(){
+            callback();
+        };
+	}
+}
+
+/**
+ * Load the given stylesheet file.
+ */
+SplunkSlideshow.addStylesheet = function( filename ){ 
+    var link_tag=document.createElement("link");
+    link_tag.setAttribute("rel", "stylesheet");
+    link_tag.setAttribute("type", "text/css");
+    link_tag.setAttribute("href", filename);
+    document.getElementsByTagName("head")[0].appendChild(link_tag);
+}
+
+/**
+ * Load the resources associated with the given app.
+ */
+SplunkSlideshow.loadAppResources = function(app){
+	if( SplunkSlideshow.isViewSimpleXML() ){
+		SplunkSlideshow.addJavascript("../../../static/app/" + app + "/dashboard.js");
+		SplunkSlideshow.addStylesheet("../../../static/app/" + app + "/dashboard.css");
+	}
+	else{
+		SplunkSlideshow.addJavascript("../../../static/app/" + app + "/application.js");
+		SplunkSlideshow.addStylesheet("../../../static/app/" + app + "/application.css");
+	}
+}
+
+/**
+ * Return true of the view is defined using simple XML.
+ */
+SplunkSlideshow.isViewSimpleXML = function(){
+	return document.getElementsByClassName('simplexml').length > 0;
 }
