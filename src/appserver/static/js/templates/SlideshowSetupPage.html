@@ -1,10 +1,12 @@
+Select the views and configure how you want to display the views below.
+When the show is started, the selected pages will be displayed for the amount of time specified automatically.
 
 	<div id="views_control_group" class="control-group">
 	<fieldset>
 		<legend>Views to Display</legend>
 	    <select id="views_list" multiple="multiple" name="views_list">
 		<% for (var i = 0; i < available_views.length; i++) { %>
-		   <% if( available_views[i].content.isVisible ) { %>
+		   <% if( available_views[i].content.isVisible && (available_views[i].acl.sharing == "global" || available_views[i].acl.sharing == "system") ) { %>
 		       <% if( available_views[i].content.label ) { %>
 		   <option value="<%- available_views[i].name %>" <% if( $.inArray(available_views[i].name, selected_views) >= 0 ){ %>selected<% } %>><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
 		       <% } else { %>
@@ -19,12 +21,21 @@
 		<!-- 
 	<h3>Options</h3>
  -->
+ 	<legend>Options</legend>
  	<div id="delay_control_group" class="control-group">
 	  <fieldset>
-	    <legend>Options</legend>
 	    <label>Delay</label>
 	    <input type="text" name="delay" placeholder="for example, 60, for a 60 second delay" value="<%- delay %>">
-	    <span class="help-block">Defines how long (in seconds) to shoe each view before changing to the next one</span>
+	    <span class="help-block">Defines how long (in seconds) to show each view before changing to the next one</span>
+	    <span class="help-inline"></span>
+	  </fieldset>
+	</div>
+	
+	<div id="load_resources_control_group" class="control-group">
+	  <fieldset>
+	    <label>Load app resources</label>
+	    <input type="checkbox" name="load_app_resources" <% if(load_app_resources){ %>checked<% } %>>
+	    <span class="help-block">Loads the app resources specific the application (dashboard.js, dashboard.css, application.js, application.css)</span>
 	    <span class="help-inline"></span>
 	  </fieldset>
 	</div>

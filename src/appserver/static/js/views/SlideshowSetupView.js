@@ -128,12 +128,13 @@ define([
         		
         		views.push({
         			'name' : selected_views[c],
-        			'app'  : view_meta.content['eai:appName']
+        			'app'  : view_meta.acl.app
         		})
         	}
         	
         	store.set('views', views );
         	store.set('view_delay', $('[name="delay"]').val() );
+        	store.set('load_app_resources', $('[name="load_app_resources"]').val() );
         	store.set('in_slideshow', true );
         	
         	// Start at the first page
@@ -187,7 +188,50 @@ define([
          * Render the page
          */
         render: function(){
+        	// Stop the show unless the user specifically requests starting it
+        	store.set('in_slideshow', false );
+        	
+        	// Get the list of views. This function will finish rendering the dialog.
         	this.retrieveViews();
+        
+        },
+        
+        /**
+         * Filter our views that are unsupported in the slide-shows.
+         */
+        filterUnsupportedViews: function(views){
+        	
+        	var supported_views = [];
+        	
+        	for( var i = 0; i < views.length; i++ ){
+        		
+        		// Don't include invisible views
+        		if( !views[i].content.isVisible ){
+        			continue;
+        		}
+        		
+        		// Skip views that are not shared
+        		else if( views[i].acl.sharing != "global" && views[i].acl.sharing != "system" ) {
+        			continue;
+        		}
+        		
+        		// Skip views that are known to not load dashboard.js or application.js
+        		else if(views[i].content['eai:data'].indexOf('<view template="pages/app.html" type="html" isDashboard="False">') >= 0){
+        			continue;
+        		}
+        		
+        		// Skip views that are just redirects
+        		else if(views[i].content['eai:data'].indexOf('type="redirect"') >= 0){
+        			continue;
+        		}
+        		
+        		// View checks out, include it
+        		else{
+        			supported_views.push(views[i]);
+        		}
+        	}
+        	
+        	return supported_views;
         
         },
         
@@ -199,6 +243,7 @@ define([
         	// Try to load the views from local storage
         	var delay = store.get('view_delay');
         	var selected_views = store.get('views');
+        	var load_app_resources = store.get('load_app_resources');
         	
         	// Setup the defaults
         	if(!delay){
@@ -207,6 +252,10 @@ define([
         	
         	if(!selected_views){
         		selected_views = [];
+        	}
+        	
+        	if(!load_app_resources){
+        		load_app_resources = true;
         	}
 
         	// Extract a list of just the view names
@@ -218,9 +267,10 @@ define([
         	
         	// Render the HTML
         	this.$el.html(_.template(SlideshowSetupPageTemplate,{
-        		available_views: this.available_views,
+        		available_views: this.filterUnsupportedViews(this.available_views),
         		delay: delay,
-        		selected_views: selected_views_names
+        		selected_views: selected_views_names,
+        		load_app_resources: load_app_resources
         	}) );
         	
         	// Convert the list into a nice dual-list
