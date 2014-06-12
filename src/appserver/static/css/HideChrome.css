@@ -1,0 +1,8 @@
+
+.fieldset{
+   display: none !important;
+}
+
+.splunk-dashboard-controls, .shared-splunkbar, #footer{
+   display: none;
+}

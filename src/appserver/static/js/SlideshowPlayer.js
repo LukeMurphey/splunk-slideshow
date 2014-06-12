@@ -36,13 +36,18 @@ SplunkSlideshow.startShow = function(){
 		 
 		 SplunkSlideshow.scheduleNextView();
 		 
-		// Load the app specific resources
+		 // Load the app specific resources
 		 if( store.get('load_app_resources') ){
 			 var current_view = SplunkSlideshow.getCurrentView();
 			 
 			 if( current_view ){
 			 	SplunkSlideshow.loadAppResources(current_view.app);
 			 }
+		 }
+		 
+		 // Hide the chrome if requested
+		 if( store.get('hide_chrome') ){
+			 SplunkSlideshow.addStylesheet("../../../static/app/slideshow/css/HideChrome.css");
 		 }
 	 }
 }

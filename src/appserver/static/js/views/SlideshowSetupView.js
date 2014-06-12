@@ -136,8 +136,9 @@ define([
         	}
         	
         	store.set('views', views );
-        	store.set('view_delay', $('[name="delay"]').val() );
-        	store.set('load_app_resources', $('[name="load_app_resources"]').val() );
+        	store.set('view_delay', $('[name="delay"]', this.$el).val() );
+        	store.set('load_app_resources', $('[name="load_app_resources"]:first', this.$el).prop("checked") );
+        	store.set('hide_chrome', $('[name="hide_chrome"]:first', this.$el).prop("checked") );
         	store.set('in_slideshow', true );
         	
         	// Start at the first page
@@ -250,27 +251,29 @@ define([
         },
         
         /**
+         * Retrieve the stored value from store.js
+         */
+        getStoredValueOrDefault: function( name, default_value ){
+        	var stored_value = store.get(name);
+        	
+        	if(stored_value === undefined){
+        		return default_value;
+        	}
+        	else{
+        		return stored_value;
+        	}
+        },
+        
+        /**
          * Render the page after all of the information is ready.
          */
         _render: function(){
         	
         	// Try to load the views from local storage
-        	var delay = store.get('view_delay');
-        	var selected_views = store.get('views');
-        	var load_app_resources = store.get('load_app_resources');
-        	
-        	// Setup the defaults
-        	if(!delay){
-        		delay = "";
-        	}
-        	
-        	if(!selected_views){
-        		selected_views = [];
-        	}
-        	
-        	if(!load_app_resources){
-        		load_app_resources = true;
-        	}
+        	var delay = this.getStoredValueOrDefault('view_delay', "");
+        	var selected_views = this.getStoredValueOrDefault('views', []);
+        	var load_app_resources = this.getStoredValueOrDefault('load_app_resources', true);
+        	var hide_chrome = this.getStoredValueOrDefault('hide_chrome', false);
 
         	// Extract a list of just the view names
         	var selected_views_names = [];
@@ -284,7 +287,8 @@ define([
         		available_views: this.filterUnsupportedViews(this.available_views),
         		delay: delay,
         		selected_views: selected_views_names,
-        		load_app_resources: load_app_resources
+        		load_app_resources: load_app_resources,
+        		hide_chrome: hide_chrome
         	}) );
         	
         	// Convert the list into a nice dual-list

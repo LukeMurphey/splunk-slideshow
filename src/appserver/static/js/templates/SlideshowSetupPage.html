@@ -24,8 +24,8 @@ When the show is started, the selected pages will be displayed for the amount of
  	<legend>Options</legend>
  	<div id="delay_control_group" class="control-group">
 	  <fieldset>
-	    <label>Delay</label>
-	    <input type="text" name="delay" placeholder="for example, 60, for a 60 second delay" value="<%- delay %>">
+	    <label>Interval</label>
+	    <input type="text" name="delay" placeholder="for example, 60, for a 60 second interval" value="<%- delay %>">
 	    <span class="help-block">Defines how long (in seconds) to show each view before changing to the next one</span>
 	    <span class="help-inline"></span>
 	  </fieldset>
@@ -36,6 +36,15 @@ When the show is started, the selected pages will be displayed for the amount of
 	    <label>Load app resources</label>
 	    <input type="checkbox" name="load_app_resources" <% if(load_app_resources){ %>checked<% } %>>
 	    <span class="help-block">Loads the app resources specific the application (dashboard.js, dashboard.css, application.js, application.css)</span>
+	    <span class="help-inline"></span>
+	  </fieldset>
+	</div>
+	
+	<div id="hide_chrome_control_group" class="control-group">
+	  <fieldset>
+	    <label>Hide controls and footer</label>
+	    <input type="checkbox" name="hide_chrome" <% if(hide_chrome){ %>checked<% } %>>
+	    <span class="help-block">Hides controls and other content that are not necessary for viewing content read-only (simplifies the views and makes them fit smaller screens)</span>
 	    <span class="help-inline"></span>
 	  </fieldset>
 	</div>
