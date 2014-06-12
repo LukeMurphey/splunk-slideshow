@@ -32,5 +32,5 @@ Change History
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 0.6     | Fixed issue where the dual-list plugin would not load sometimes                                                  |
 |---------|------------------------------------------------------------------------------------------------------------------|
-| 0.7     | Added option that will hide content that is unnecessary for viewing dashbaords (controls, footer, etc)           |
+| 0.7     | Added option that will hide content that is unnecessary for viewing dashboards (controls, footer, etc)           |
 +---------+------------------------------------------------------------------------------------------------------------------+
