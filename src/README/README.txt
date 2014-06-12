@@ -2,8 +2,7 @@
 Overview
 ================================================
 
-A Splunk app that will rotate between dashboards on a frequency; useful for displaying content on informational big screens.
-
+A Splunk app that will flip between dashboards on an interval; useful for displaying content on informational big screens.
 
 
 ================================================
@@ -11,7 +10,6 @@ Configuring Slideshow
 ================================================
 
 Open the view titled "setup a show" and configure the show. Once the show is configured, the selected views will be displayed accordingly.
-
 
 
 ================================================
@@ -33,4 +31,6 @@ Change History
 | 0.5     | Initial release                                                                                                  |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 0.6     | Fixed issue where the dual-list plugin would not load sometimes                                                  |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 0.7     | Added option that will hide content that is unnecessary for viewing dashbaords (controls, footer, etc)           |
 +---------+------------------------------------------------------------------------------------------------------------------+
