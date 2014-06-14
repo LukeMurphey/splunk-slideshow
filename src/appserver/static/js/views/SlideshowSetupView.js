@@ -46,7 +46,8 @@ define([
          * Wire up the events
          */
         events: {
-        	"click #start_show" : "startShow"
+        	"click #start_show" : "startShow",
+        	"click #help_dashboards_list" : "showDashboardsListHelp"
         },
         
         initialize: function() {
@@ -55,6 +56,21 @@ define([
         	this.options = _.extend({}, this.defaults, this.options);
         	
         	this.available_views = null;
+        },
+        
+        showDashboardsListHelp: function(){
+        	this.showHelp('<p>The dashboards listed for viewing are limited to those that this app can show in a slideshow. If a view is excluded in the list then most likely the permissions are set too restrictively. <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/SearchTutorial/Aboutdashboards#Change_dashboard_permissions">Check the permissions</a> and modify them to share the dashboards with all apps.</p>' + 
+        			      '<p>If you want to make a new view, then see the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/CreateandeditdashboardsviatheUI">Splunk documentation</a> for help.</p>');
+        	
+        	return false;
+        },
+        
+        /**
+         * Show the help dialog
+         */
+        showHelp: function(message_html){
+        	$('#help-dialog-text', this.$el).html(message_html);
+        	$('#help-dialog', this.$el).modal();
         },
         
         /**
