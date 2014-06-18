@@ -33,4 +33,6 @@ Change History
 | 0.6     | Fixed issue where the dual-list plugin would not load sometimes                                                  |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 0.7     | Added option that will hide content that is unnecessary for viewing dashboards (controls, footer, etc)           |
+|         | Fixed issue that prevented the app from working on Splunk 6.0                                                    |
+|         | Added help that described why some views were not available in the list of available views                       |
 +---------+------------------------------------------------------------------------------------------------------------------+
