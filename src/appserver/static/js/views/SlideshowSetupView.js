@@ -20,7 +20,6 @@ define([
     "splunkjs/mvc",
     "jquery",
     "splunkjs/mvc/simplesplunkview",
-    "splunkjs/mvc/simpleform/formutils",
     "splunkjs/mvc/simpleform/input/dropdown",
     "splunkjs/mvc/simpleform/input/text",
     "text!../app/slideshow/js/templates/SlideshowSetupPage.html",
@@ -28,7 +27,7 @@ define([
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
-], function(_, Backbone, mvc, $, SimpleSplunkView, FormUtils, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
+], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
 	
     // Define the custom view class
     var SlideshowSetupView = SimpleSplunkView.extend({
@@ -236,8 +235,13 @@ define([
         	
         	for( var i = 0; i < views.length; i++ ){
         		
+        		// Don't include the setup view
+        		if( views[i].name == "slideshow_setup" ){
+        			continue;
+        		}
+        		
         		// Don't include invisible views
-        		if( !views[i].content.isVisible ){
+        		else if( !views[i].content.isVisible ){
         			continue;
         		}
         		
