@@ -2,3 +2,9 @@
 #views_list{
 	height: 320px;	
 }
+
+input[type="checkbox"]{
+	float: left;
+	margin-right: 6px;
+	margin-top: 2px;
+}
