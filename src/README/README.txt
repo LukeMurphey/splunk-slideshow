@@ -35,4 +35,7 @@ Change History
 | 0.7     | Added option that will hide content that is unnecessary for viewing dashboards (controls, footer, etc)           |
 |         | Fixed issue that prevented the app from working on Splunk 6.0                                                    |
 |         | Added help that described why some views were not available in the list of available views                       |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 0.8     | Improved styling on the filtered text on the setup view                                                          |
+|         |                                                     |
 +---------+------------------------------------------------------------------------------------------------------------------+
