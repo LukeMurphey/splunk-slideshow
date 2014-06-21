@@ -6,6 +6,41 @@
 	background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAo0lEQVQ4T63UPRKCMBQEYLgZNR5HBeyw8we4jbbewDOx61g58LKLeTNbJfPlJZmkLDJXGXg1xp7uehH4AvZG9g6aAitgk4MqIBsckYPSqQrSGpBjCnVAWnekiVAXTKJbQKI3pF3qdCtI64z0v+g/4AXYKRfYAbrm2vIqxgXcLfMieCGr5YBJzOlQwlRQxhSQ/yGfm1zRGe6gPGTpOzECXeszfwY1jiIVhPMR0AAAAABJRU5ErkJggg==');
 }
 
-.slideshow-controls{
-	
+#slideshow-controls {
+	padding-top: 6px;
+	display: none;
+}
+
+.slideshow-control{
+	background-repeat:no-repeat;
+	background-position:center;
+	width: 32px;
+	display: inline-block;
+}
+
+.slideshow-control > a{
+	width: 24px;
+	height: 24px;
+	display: block;
+}
+
+/* Icons from http://www.picol.org/ */
+.prev-button{
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAX0lEQVQ4jcWTsQrAMAgFTemQP+7qn1+GbkFfhQgVMp0XyNMMwE7qOrKLFzySAeo4b6WsIkd9noFI3vs8A5mMYhUZxfYpTJF4zLqf0BJiyxjLi3R/rLGLYN3M5uDv37gA80bxRDLjRjAAAAAASUVORK5CYII=);	
+}
+
+.next-button{
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAZElEQVQ4jcWTOw6AMAxDXSZuzMrIrR9DK8Qn8RKkWsr0HEtN0gaooqXUPQI2wx3romsHFJRjAq6AzOjYJyAyOhYGvI2OpQF3o2MC0jWuZu5P9vcTSkMsrbF0SIcxOCZAjdm/8QRSpiEfS9uUtAAAAABJRU5ErkJggg==);
+}
+
+.play-button{
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAVklEQVQ4jcXTsQrAIAyEYePUN+7asW/9dy408cIVFDJJPkhOAxjOmVZ3AZyyAHwVwJXcvaoCJGQFLBEFKBEVSJFOjEc3hd9GsJZoxWg9pFtpBkaw+zc+IHMCsWj4gJ8AAAAASUVORK5CYII=);
+}
+
+.pause-button{
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAANUlEQVQ4jWP8//8/AyWAiSLdDAwMLEhsdKcwovGxylPsglEDRg0YHAYg5wX0tI8OsMpT7AIAUM8FIzI5Y5QAAAAASUVORK5CYII=);
+}
+
+.stop-button{
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAiklEQVQ4ja1TQQ7AIAjDZQd/7G7j6F68Y3fBDBF1iWtColKwVg0AaAWbGieJGWoeAALAeMGy5kXDKwqi2uHsKEmSK4hage1ulXRzVmI2xCShkXXN7JwWjT9fzOoWQ5locX9c+/8InmGesW6DpWscFQ853ku8iIgdu1hy1UvcZXKohB5bNLyAxe/8AEMq/vp/YMlBAAAAAElFTkSuQmCC);
 }
