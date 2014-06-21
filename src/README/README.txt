@@ -38,4 +38,5 @@ Change History
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 0.8     | Improved styling on the filtered text on the setup view                                                          |
 |         | Added controls for pausing, stopping, fast forwarding or rewinding a show                                        |
+|         | Added support for IE 8 and IE 9                                                                                  |
 +---------+------------------------------------------------------------------------------------------------------------------+
