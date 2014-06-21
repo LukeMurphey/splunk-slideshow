@@ -3,6 +3,6 @@
    display: none !important;
 }
 
-.splunk-dashboard-controls, .shared-splunkbar, #footer{
+.splunk-dashboard-controls, .shared-splunkbar, #footer, .appHeader{
    display: none;
 }
