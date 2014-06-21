@@ -397,15 +397,17 @@ SplunkSlideshow.initializeControls = function(){
 	SplunkSlideshow.executeWhenMatches(".shared-appbar", function(){
 		
 		setTimeout( function() {
-		$(".shared-appbar").first().prepend('<div id="slideshow-controls" class="pull-right"></div>');
-		
-		SplunkSlideshow.addControl('prev-button', 'SplunkSlideshow.prev');
-		SplunkSlideshow.addControl('pause-button', 'SplunkSlideshow.togglePaused');
-		SplunkSlideshow.addControl('stop-button', 'SplunkSlideshow.stop');
-		SplunkSlideshow.addControl('next-button', 'SplunkSlideshow.next');
-		
-		$('.app-name').fadeOut(500, function(){$("#slideshow-controls").fadeIn(500)});
-		}, 5000);
+			$(".shared-appbar").first().prepend('<div id="slideshow-controls" class="pull-right"></div>');
+			
+			SplunkSlideshow.addControl('prev-button', 'SplunkSlideshow.prev');
+			SplunkSlideshow.addControl('pause-button', 'SplunkSlideshow.togglePaused');
+			SplunkSlideshow.addControl('stop-button', 'SplunkSlideshow.stop');
+			SplunkSlideshow.addControl('next-button', 'SplunkSlideshow.next');
+			
+			$('.app-name').fadeOut(500, function(){
+				$("#slideshow-controls").fadeIn(500)
+			});
+		}, 2500 );
 	});
 }
 
