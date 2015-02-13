@@ -3,6 +3,7 @@ require.config({
         text: "../app/slideshow/contrib/text",
         bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min",
         store: "../app/slideshow/contrib/store.min",
+        nprogress: "../app/slideshow/contrib/nprogress/nprogress",
     },
 	shim: {
 	    'store': {
@@ -10,7 +11,11 @@ require.config({
 	    },
     	'bootstrap_dualist': {
     		deps: ['jquery']
-    	}
+    	},
+	    nprogress: {
+	    	exports: 'NProgress',
+	    	deps: ['jquery']
+	    }
 	}
 });
 
@@ -24,8 +29,10 @@ define([
     "splunkjs/mvc/simpleform/input/text",
     "text!../app/slideshow/js/templates/SlideshowSetupPage.html",
     "store",
+    "slideshow_player",
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
+    "nprogress",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
 ], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
 	
@@ -38,7 +45,7 @@ define([
          * Setup the defaults
          */
         defaults: {
-        	
+        	'interval': 200
         },
         
         /**
@@ -46,6 +53,7 @@ define([
          */
         events: {
         	"click #start_show" : "startShow",
+        	"click #stop_show" : "stopShow",
         	"click #help_dashboards_list" : "showDashboardsListHelp"
         },
         
@@ -54,7 +62,19 @@ define([
         	// Apply the defaults
         	this.options = _.extend({}, this.defaults, this.options);
         	
+        	this.interval = this.options.interval;
+        	
         	this.available_views = null;
+        	
+        	// These variables are used for running the show and will be set when the show begins
+        	this.slideshow_window = null;
+        	this.slideshow_view_offset = null;
+        	this.slideshow_views = null;
+        	this.slideshow_delay = null;
+        	this.slideshow_hide_chrome = null;
+        	this.slideshow_time_spent = 0;
+        	this.slideshow_progress_bar_created = false;
+        	
         },
         
         showDashboardsListHelp: function(){
@@ -129,7 +149,7 @@ define([
         /**
          * Start the show.
          */
-        startShow: function(){
+        startShowSameWindow: function(){
         	
         	// Make sure the settings are valid
         	if( !this.validate() ){
@@ -152,12 +172,225 @@ define([
         	
         	store.set('views', views );
         	store.set('view_delay', $('[name="delay"]', this.$el).val() );
-        	store.set('load_app_resources', $('[name="load_app_resources"]:first', this.$el).prop("checked") );
+        	//store.set('load_app_resources', $('[name="load_app_resources"]:first', this.$el).prop("checked") );
         	store.set('hide_chrome', $('[name="hide_chrome"]:first', this.$el).prop("checked") );
         	store.set('in_slideshow', true );
         	
         	// Start at the first page
         	document.location = views[0].name;
+        },
+        
+        /**
+         * Start the show in a new window.
+         */
+        startShow: function(){
+        	
+        	// Make sure the settings are valid
+        	if( !this.validate() ){
+        		//Show cannot be started, something doesn't validate
+        		return false;
+        	}
+        	
+        	// Get the views put into a list
+        	var selected_views = $('[name="views_list"]', this.$el).val();
+        	var views = [];
+        	
+        	for( var c = 0; c < selected_views.length; c++){
+        		
+        		var view_meta = this.getViewForName(selected_views[c]);
+        		
+        		views.push({
+        			'name' : selected_views[c],
+        			'app'  : view_meta.acl.app
+        		})
+        	}
+        	
+        	var delay = $('[name="delay"]', this.$el).val();
+        	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
+        	
+        	// Save the settings
+        	store.set('views', views );
+        	store.set('view_delay', delay);
+        	store.set('hide_chrome', hide_chrome);
+        	
+        	// Initialize the slideshow parameters so that we can run the show
+        	this.slideshow_window = null;
+        	this.slideshow_view_offset = 0;
+        	this.slideshow_views = views;
+        	this.slideshow_delay = delay;
+        	this.slideshow_hide_chrome = hide_chrome;
+        	
+        	// Open the window with the first view
+        	this.goToNextView();
+        	
+        	// Start the process
+        	this.executeSlideshowCycle();
+        	
+        	// Show the start button
+        	this.toggleStartButton(false);
+        },
+        
+        /**
+         * Toggle the start button or stop button.
+         */
+        toggleStartButton: function(show_start){
+        	
+        	if( typeof show_start === undefined ){
+        		var show_start = true;
+        	}
+        	
+        	if( show_start ){
+        		$("#stop_show", this.$el).hide();
+            	$("#start_show", this.$el).show();
+        	}
+        	else{
+        		$("#stop_show", this.$el).show();
+            	$("#start_show", this.$el).hide();
+        	}
+        },
+        
+        
+        /**
+         * Go to the next view in the list.
+         */
+        goToNextView: function(){
+        	
+        	// Get the view that we are showing
+        	var view = null;
+        	
+        	// If the view offset is undefined start at the beginning
+        	if( this.slideshow_view_offset === null ){
+        		this.slideshow_view_offset = 0;
+        	}
+        	else{
+        		this.slideshow_view_offset++; 
+        	}
+        	
+        	// If the we went off of the end, then wrap around
+        	if( this.slideshow_view_offset >= this.slideshow_views.length ){
+        		this.slideshow_view_offset = 0;
+        	}
+
+        	// Get the view
+        	view = this.slideshow_views[this.slideshow_view_offset];
+        	
+        	console.info("Changing to next view: " + view.name);
+        	
+        	// Make the window if necessary
+        	if( this.slideshow_window === null ){
+        		this.slideshow_window = window.open(view.name, "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
+        		//this.slideshow_window = window.open(view.name, "_blank", "toolbar=yes");
+        	}
+        	
+        	// Otherwise, change the window
+        	else{
+        		
+        		// Stop if the window was closed
+        		if(this.slideshow_window === null || this.slideshow_window.closed){
+        			console.info("Window was closed, show will stop");
+        			return;
+        		}
+        		
+        		this.slideshow_window.location = view.name;
+        	}
+        	
+        	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
+        	var readyStateCheckInterval = setInterval(function() {
+        		
+        		//if (this.slideshow_window.document.getElementsByTagName('body')[0]) {
+        		// Stop of the window is closed or null
+        		if( this.slideshow_window.document === null || this.slideshow_window.document.closed ){
+        			clearInterval(readyStateCheckInterval);
+        			return;
+        		}
+        		
+        		// See if the document is ready and update it if it is
+        		if( this.slideshow_window.document.readyState === 'loaded'
+        			|| this.slideshow_window.document.readyState === 'interactive'
+        			|| this.slideshow_window.document.readyState === 'complete' ){
+        			
+        			// Load the CSS for the progress indicator
+        			this.addStylesheet("../../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
+        			
+               	 	// Start the progress indicator
+               	 	NProgress.configure({
+               	 							showSpinner: false,
+               	 							document: this.slideshow_window.document
+               	 						});
+               	 	
+               	 	NProgress.set(0.0);
+               	 	
+               	 	this.slideshow_progress_bar_created = true;
+        			
+        	    	
+        	    	// Hide the chrome if requested
+        	    	if( this.slideshow_hide_chrome ){
+        	    		this.addStylesheet("../../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
+        	    		console.info("Successfully loaded the stylesheet for hiding chrome");
+        	    	}
+        	    	
+        	    	// Were done
+        	    	clearInterval(readyStateCheckInterval);
+        	       
+        	    }
+        	}.bind(this), 3000);
+        	
+        },
+        
+        /**
+         * Execute the cycle of looking to determine if changes are necessary to the show.
+         */
+        executeSlideshowCycle: function(){
+        	
+        	// Increment the timer
+        	this.slideshow_time_spent += this.interval;
+        	
+    		// If the window was closed, stop the show
+    		if(this.slideshow_window !== null && this.slideshow_window.closed){
+    			console.info("Window was closed, show will stop");
+    			this.stopShow();
+    			return false;
+    		}
+    		else if(this.slideshow_time_spent >= (this.slideshow_delay * 1000)){
+    			this.slideshow_time_spent = 0;
+    			this.goToNextView();
+    		}
+    		
+    		// Set the progress
+    		if( this.slideshow_progress_bar_created ){
+    			NProgress.set( (1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000) );
+    		}
+    		
+        	// Schedule the next call
+        	window.setTimeout( function(){
+        		this.executeSlideshowCycle();
+        	}.bind(this), this.interval);
+    		
+    		
+        },
+        
+        /**
+         * Note that the show has stopped
+         */
+        stopShow: function(){
+        	this.toggleStartButton(true);
+        	this.slideshow_window.close();
+        	this.slideshow_window = null;
+        	
+        	if( this.slideshow_progress_bar_created ){
+        		NProgress.set(0.0);
+        	}
+        },
+        
+        /**
+         * Add a stylesheet to the given document.
+         */
+        addStylesheet: function(filename, doc){
+            var link_tag=doc.createElement("link");
+            link_tag.setAttribute("rel", "stylesheet");
+            link_tag.setAttribute("type", "text/css");
+            link_tag.setAttribute("href", filename);
+            doc.getElementsByTagName("head")[0].appendChild(link_tag);
         },
         
         /**
