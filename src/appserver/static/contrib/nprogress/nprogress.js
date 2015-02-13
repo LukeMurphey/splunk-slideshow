@@ -167,7 +167,6 @@
   NProgress.render = function(fromStart) {
     if (NProgress.isRendered()) return $("#nprogress", Settings.document);
     $('html', Settings.document).addClass('nprogress-busy');
-    $("div", Settings.document ).css("background-color", "red");
     
     var $el = $("<div id='nprogress'>", Settings.document)
       .html(Settings.template);
