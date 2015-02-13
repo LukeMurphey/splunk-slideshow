@@ -22,6 +22,7 @@
     trickle: true,
     trickleRate: 0.02,
     trickleSpeed: 800,
+    document: window.document,
     showSpinner: true,
     template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
   };
@@ -53,12 +54,11 @@
 
   NProgress.set = function(n) {
     var started = NProgress.isStarted();
-
     n = clamp(n, Settings.minimum, 1);
     NProgress.status = (n === 1 ? null : n);
 
     var $progress = NProgress.render(!started),
-        $bar      = $progress.find('[role="bar"]'),
+        $bar      = $progress.find('[role="bar"]', Settings.document),
         speed     = Settings.speed,
         ease      = Settings.easing;
 
@@ -165,12 +165,13 @@
    */
 
   NProgress.render = function(fromStart) {
-    if (NProgress.isRendered()) return $("#nprogress");
-    $('html').addClass('nprogress-busy');
-
-    var $el = $("<div id='nprogress'>")
+    if (NProgress.isRendered()) return $("#nprogress", Settings.document);
+    $('html', Settings.document).addClass('nprogress-busy');
+    $("div", Settings.document ).css("background-color", "red");
+    
+    var $el = $("<div id='nprogress'>", Settings.document)
       .html(Settings.template);
-
+    
     var perc = fromStart ? '-100' : toBarPerc(NProgress.status || 0);
 
     $el.find('[role="bar"]').css({
@@ -181,7 +182,7 @@
     if (!Settings.showSpinner)
       $el.find('[role="spinner"]').remove();
 
-    $el.appendTo(document.body);
+    $el.appendTo(Settings.document.body);
 
     return $el;
   };
@@ -191,8 +192,8 @@
    */
 
   NProgress.remove = function() {
-    $('html').removeClass('nprogress-busy');
-    $('#nprogress').remove();
+    $('html', Settings.document).removeClass('nprogress-busy');
+    $('#nprogress', Settings.document).remove();
   };
 
   /**
@@ -200,7 +201,7 @@
    */
 
   NProgress.isRendered = function() {
-    return ($("#nprogress").length > 0);
+    return ($("#nprogress", Settings.document).length > 0);
   };
 
   /**
