@@ -344,7 +344,27 @@ define([
         	// Make the window if necessary
         	if( this.slideshow_window === null ){
         		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
-        		//this.slideshow_window = window.open(view.name, "_blank", "toolbar=yes");
+        		
+        		// Stop of the window could not be opened
+        		if(!this.slideshow_window){
+        			console.warn("Slideshow popup window was not defined; this is likely due to a popup blocker");
+        			this.showPopupWasBlockedDialog();
+        		}
+        		
+        		// Detect if the window opened successfully
+        		else{
+	        		
+        			setTimeout(function () {
+	        		    if(this.slideshow_window.innerHeight <= 0){
+	        		    	console.warn("Slideshow popup window has an inner height of zero; this is likely due to a popup blocker");
+	        		    	this.showPopupWasBlockedDialog();
+	        		    }
+	        		    else{
+	        		    	console.info("Popup window was created successfully (was not popup blocked)");
+	        		    }
+	        		}.bind(this), 3000);
+        			
+        		}
         	}
         	
         	// Otherwise, change the window
@@ -552,6 +572,13 @@ define([
         	// Get the list of apps. We will need to make sure we don't forward the user to an app that is not visible.
         	this.retrieveApps();
         
+        },
+        
+        /**
+         * Show a dialog noting that the popup was blocked.
+         */
+        showPopupWasBlockedDialog: function(){
+        	this.showHelp("Yikes, it looks like the popup window was blocked.<br /><br />Check your browser settings and update them if the show didn't appear.")
         },
         
         /**
