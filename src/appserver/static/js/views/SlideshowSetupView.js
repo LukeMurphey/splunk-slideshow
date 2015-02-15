@@ -573,18 +573,6 @@ define([
         			continue;
         		}
         		
-        		/*
-        		// Skip views that are not shared
-        		else if( views[i].acl.sharing != "global" && views[i].acl.sharing != "system" ) {
-        			continue;
-        		}
-        		
-        		// Skip views that are known to not load dashboard.js or application.js
-        		else if(views[i].content['eai:data'].indexOf('<view template="pages/app.html" type="html" isDashboard="False">') >= 0){
-        			continue;
-        		}
-        		*/
-        		
         		// Skip views that are just redirects
         		else if(views[i].content['eai:data'].indexOf('type="redirect"') >= 0){
         			continue;
