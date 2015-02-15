@@ -53,8 +53,7 @@ define([
          */
         events: {
         	"click #start_show" : "startShow",
-        	"click #stop_show" : "stopShow",
-        	"click #help_dashboards_list" : "showDashboardsListHelp"
+        	"click #stop_show" : "stopShow"
         },
         
         initialize: function() {
@@ -65,6 +64,7 @@ define([
         	this.interval = this.options.interval;
         	
         	this.available_views = null;
+        	this.available_apps = null;
         	
         	// These variables are used for running the show and will be set when the show begins
         	this.slideshow_window = null;
@@ -75,13 +75,30 @@ define([
         	this.slideshow_time_spent = 0;
         	this.slideshow_progress_bar_created = false;
         	
-        },
-        
-        showDashboardsListHelp: function(){
-        	this.showHelp('<p>The dashboards listed for viewing are limited to those that this app can show in a slideshow. If a view is excluded in the list then most likely the permissions are set too restrictively. <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/SearchTutorial/Aboutdashboards#Change_dashboard_permissions">Check the permissions</a> and modify them to share the dashboards with all apps.</p>' + 
-        			      '<p>If you want to make a new view, then see the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/CreateandeditdashboardsviatheUI">Splunk documentation</a> for help.</p>');
+        	this.view_overrides = [
+        			{
+        				'view' : 'incident_review',
+        				'app' : 'SA-ThreatIntelligence',
+        				'app_override' : 'SplunkEnterpriseSecuritySuite'
+        			},
+        			{
+        				'app' : 'DA-ESS-AccessProtection',
+        				'app_override' : 'SplunkEnterpriseSecuritySuite'
+        			},
+        			{
+        				'app' : 'DA-ESS-EndpointProtection',
+        				'app_override' : 'SplunkEnterpriseSecuritySuite'
+        			},
+        			{
+        				'app' : 'DA-ESS-IdentityProtection',
+        				'app_override' : 'SplunkEnterpriseSecuritySuite'
+        			},
+        			{
+        				'app' : 'DA-ESS-NetworkProtection',
+        				'app_override' : 'SplunkEnterpriseSecuritySuite'
+        			}
+        	]
         	
-        	return false;
         },
         
         /**
@@ -249,6 +266,54 @@ define([
         	}
         },
         
+        /**
+         * Make the URL to forward the user to.
+         */
+        makeViewURL: function(view, app){
+        	
+        	var app_to_use = app;
+        	
+        	// See if an app override exists for this app
+        	for(var c = 0; c < this.view_overrides.length; c++){
+        		
+        		// Does the app match this entry? If not skip to the next one
+        		if( this.view_overrides[c].hasOwnProperty('app') && this.view_overrides[c].app !== app ){
+        			continue;
+        		}
+        		
+        		// Does the view match this entry? If not skip to the next one
+        		if( this.view_overrides[c].hasOwnProperty('view') && this.view_overrides[c].view !== view ){
+        			continue;
+        		}
+        		
+        		// Found a match
+        		app_to_use = this.view_overrides[c].app_override;
+        		
+        		console.info("Using an app override for the view '" + view + "'; override app is '" + app_to_use + "'");
+        		break;
+        	}
+        	
+        	// Make sure that the app is visible, then show the view in the slideshow app if it is
+        	if( this.available_apps !== null ){
+        		
+        		for(c = 0; c < this.available_apps.length; c++){
+        			if( app_to_use === this.available_apps[c].name ){
+        				
+        				// If the app is invisible, then show the view in the slideshow app
+        				if( !this.available_apps[c].content.visible ){
+        					app_to_use = 'slideshow';
+        					console.info("The view '" + view + "' is not associated with a visible app");
+        				}
+        				
+        				// Found, we are done here
+        				break;
+        			}
+        		}
+        	}
+        	
+        	// Make the URL and return it
+        	return "../" + app_to_use + "/" + view;
+        },
         
         /**
          * Go to the next view in the list.
@@ -278,7 +343,7 @@ define([
         	
         	// Make the window if necessary
         	if( this.slideshow_window === null ){
-        		this.slideshow_window = window.open(view.name, "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
+        		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
         		//this.slideshow_window = window.open(view.name, "_blank", "toolbar=yes");
         	}
         	
@@ -291,7 +356,7 @@ define([
         			return;
         		}
         		
-        		this.slideshow_window.location = view.name;
+        		this.slideshow_window.location = this.makeViewURL(view.name, view.app);
         	}
         	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
@@ -437,6 +502,33 @@ define([
         },
         
         /**
+         * Get the list of available apps.
+         */
+        retrieveApps: function(){
+        	
+        	// Prepare the arguments
+            var params = new Object();
+            params.output_mode = 'json';
+            params.count = '-1';
+            
+            var uri = Splunk.util.make_url('/splunkd/services/apps/local');
+            uri += '?' + Splunk.util.propToQueryString(params);
+            
+            // Fire off the request
+            jQuery.ajax({
+                url:         uri,
+                type:        'GET',
+                success: function(result) {
+                	this.available_apps = result.entry;
+                }.bind(this),
+                error: function(jqXHR, textStatus){
+                	alert("The list of apps could not be loaded");
+                }.bind(this)
+            });
+        
+        },
+        
+        /**
          * Render the page
          */
         render: function(){
@@ -456,6 +548,9 @@ define([
         	
         	// Get the list of views. This function will finish rendering the dialog.
         	this.retrieveViews();
+        	
+        	// Get the list of apps. We will need to make sure we don't forward the user to an app that is not visible.
+        	this.retrieveApps();
         
         },
         
@@ -478,6 +573,7 @@ define([
         			continue;
         		}
         		
+        		/*
         		// Skip views that are not shared
         		else if( views[i].acl.sharing != "global" && views[i].acl.sharing != "system" ) {
         			continue;
@@ -487,6 +583,7 @@ define([
         		else if(views[i].content['eai:data'].indexOf('<view template="pages/app.html" type="html" isDashboard="False">') >= 0){
         			continue;
         		}
+        		*/
         		
         		// Skip views that are just redirects
         		else if(views[i].content['eai:data'].indexOf('type="redirect"') >= 0){
