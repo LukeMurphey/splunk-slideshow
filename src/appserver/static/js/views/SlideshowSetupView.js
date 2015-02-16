@@ -243,6 +243,7 @@ define([
         	
         	// Start the process
         	this.slideshow_is_running = true;
+        	this.slideshow_time_spent = 0;
         	this.executeSlideshowCycle();
         	
         	// Show the start button
@@ -429,8 +430,6 @@ define([
         	       
         	    }
         	}.bind(this), 10);
-        	
-        	console.info("Done setting up ready state check");
         	
         },
         
