@@ -165,40 +165,6 @@ define([
         },
         
         /**
-         * Start the show.
-         */
-        startShowSameWindow: function(){
-        	
-        	// Make sure the settings are valid
-        	if( !this.validate() ){
-        		//Show cannot be started, something doesn't validate
-        		return false;
-        	}
-        	
-        	var selected_views = $('[name="views_list"]', this.$el).val();
-        	var views = [];
-        	
-        	for( var c = 0; c < selected_views.length; c++){
-        		
-        		var view_meta = this.getViewForName(selected_views[c]);
-        		
-        		views.push({
-        			'name' : selected_views[c],
-        			'app'  : view_meta.acl.app
-        		})
-        	}
-        	
-        	store.set('views', views );
-        	store.set('view_delay', $('[name="delay"]', this.$el).val() );
-        	//store.set('load_app_resources', $('[name="load_app_resources"]:first', this.$el).prop("checked") );
-        	store.set('hide_chrome', $('[name="hide_chrome"]:first', this.$el).prop("checked") );
-        	store.set('in_slideshow', true );
-        	
-        	// Start at the first page
-        	document.location = views[0].name;
-        },
-        
-        /**
          * Start the show in a new window.
          */
         startShow: function(){
