@@ -74,6 +74,7 @@ define([
         	this.slideshow_hide_chrome = null;
         	this.slideshow_time_spent = 0;
         	this.slideshow_progress_bar_created = false;
+        	this.slideshow_is_running = false;
         	
         	this.view_overrides = [
         			{
@@ -241,6 +242,7 @@ define([
         	this.goToNextView();
         	
         	// Start the process
+        	this.slideshow_is_running = true;
         	this.executeSlideshowCycle();
         	
         	// Show the start button
@@ -345,8 +347,14 @@ define([
         	if( this.slideshow_window === null ){
         		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
         		
+        		// Stop if the show is over
+        		if(!this.slideshow_is_running){
+        			// Stop the show!!!
+        			return;
+        		}
+        		
         		// Stop of the window could not be opened
-        		if(!this.slideshow_window){
+        		else if(!this.slideshow_window && this.slideshow_is_running){
         			console.warn("Slideshow popup window was not defined; this is likely due to a popup blocker");
         			this.showPopupWasBlockedDialog();
         		}
@@ -355,6 +363,12 @@ define([
         		else{
 	        		
         			setTimeout(function () {
+        				
+        				// Stop if the window was closed
+        				if(!this.slideshow_window || this.slideshow_window.closed){
+        					return;
+        				}
+        				
 	        		    if(this.slideshow_window.innerHeight <= 0){
 	        		    	console.warn("Slideshow popup window has an inner height of zero; this is likely due to a popup blocker");
 	        		    	this.showPopupWasBlockedDialog();
@@ -382,9 +396,8 @@ define([
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
         	var readyStateCheckInterval = setInterval(function() {
         		
-        		//if (this.slideshow_window.document.getElementsByTagName('body')[0]) {
-        		// Stop of the window is closed or null
-        		if( this.slideshow_window.document === null || this.slideshow_window.document.closed ){
+        		// Stop if the window is closed or null
+        		if( this.slideshow_window.document === null || this.slideshow_window.document.closed || !this.slideshow_is_running ){
         			clearInterval(readyStateCheckInterval);
         			return;
         		}
@@ -431,7 +444,7 @@ define([
         	this.slideshow_time_spent += this.interval;
         	
     		// If the window was closed, stop the show
-    		if(this.slideshow_window !== null && this.slideshow_window.closed){
+    		if(this.slideshow_window === null || this.slideshow_window.closed || !this.slideshow_is_running){
     			console.info("Window was closed, show will stop");
     			this.stopShow();
     			return false;
@@ -459,12 +472,20 @@ define([
          */
         stopShow: function(){
         	this.toggleStartButton(true);
-        	this.slideshow_window.close();
-        	this.slideshow_window = null;
         	
+        	// Close the window if it has not been done so
+        	if( this.slideshow_window !== null ){
+	        	this.slideshow_window.close();
+	        	this.slideshow_window = null;
+        	}
+        	
+        	// Reset the progress bar
         	if( this.slideshow_progress_bar_created ){
         		NProgress.set(0.0);
         	}
+        	
+        	// Indicate that the show isn't running anymore
+        	this.slideshow_is_running = false;
         },
         
         /**
