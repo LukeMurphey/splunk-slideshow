@@ -347,14 +347,8 @@ define([
         	if( this.slideshow_window === null ){
         		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
         		
-        		// Stop if the show is over
-        		if(!this.slideshow_is_running){
-        			// Stop the show!!!
-        			return;
-        		}
-        		
         		// Stop of the window could not be opened
-        		else if(!this.slideshow_window && this.slideshow_is_running){
+        		if(!this.slideshow_window && this.slideshow_is_running){
         			console.warn("Slideshow popup window was not defined; this is likely due to a popup blocker");
         			this.showPopupWasBlockedDialog();
         		}
@@ -390,8 +384,11 @@ define([
         			return;
         		}
         		
+        		// Change to the new view
         		this.slideshow_window.location = this.makeViewURL(view.name, view.app);
         	}
+        	
+        	console.info("Setting up ready state check");
         	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
         	var readyStateCheckInterval = setInterval(function() {
@@ -403,9 +400,10 @@ define([
         		}
         		
         		// See if the document is ready and update it if it is
-        		if( this.slideshow_window.document.readyState === 'loaded'
+        		if( (this.slideshow_window.document.readyState === 'loaded'
         			|| this.slideshow_window.document.readyState === 'interactive'
-        			|| this.slideshow_window.document.readyState === 'complete' ){
+        			|| this.slideshow_window.document.readyState === 'complete')
+        			&& this.slideshow_window.document.body.innerHTML.length > 0 ){
         			
         			// Load the CSS for the progress indicator
         			this.addStylesheet("../../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
@@ -419,7 +417,6 @@ define([
                	 	NProgress.set(0.0);
                	 	
                	 	this.slideshow_progress_bar_created = true;
-        			
         	    	
         	    	// Hide the chrome if requested
         	    	if( this.slideshow_hide_chrome ){
@@ -431,7 +428,9 @@ define([
         	    	clearInterval(readyStateCheckInterval);
         	       
         	    }
-        	}.bind(this), 3000);
+        	}.bind(this), 10);
+        	
+        	console.info("Done setting up ready state check");
         	
         },
         
@@ -456,7 +455,7 @@ define([
     		
     		// Set the progress
     		if( this.slideshow_progress_bar_created ){
-    			console.info("" + this.slideshow_time_spent.toString() + " for delay " + this.slideshow_delay.toString() + " is " + ((1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000)).toString() );
+    			//console.info("" + this.slideshow_time_spent.toString() + " for delay " + this.slideshow_delay.toString() + " is " + ((1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000)).toString() );
     			NProgress.set( (1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000) );
     		}
     		
