@@ -10,7 +10,7 @@
     <!-- Set up some basic parameters -->
     <property name="value.src.directory" value="src" />
     <property name="value.temp.directory" value="${java.io.tmpdir}/${user.name}/${ant.project.name}" />
-    <property name="value.build.appname" value="ant.project.name" />
+    <property name="value.build.appname" value="${ant.project.name}" />
     <property name="value.build.packageoutput.directory" value="tmp/packages" />
     
     <!-- Set up the ant classpath -->
@@ -200,7 +200,7 @@
     	<uptodate property="appserver_up_to_date">
     		
     		<!-- target should point to the source files -->
-    		<mapper type="glob" from="*" to="${value.deploy.splunk_home}/etc/apps/slideshow/appserver/*" />
+    		<mapper type="glob" from="*" to="${value.deploy.splunk_home}/etc/apps/${value.build.appname}/appserver/*" />
     		
     		<!-- srcfiles should point to the deployed files -->
     	    <srcfiles dir="${basedir}/${value.src.directory}/appserver/" includes="**/*" />
@@ -242,6 +242,9 @@
     	<echo file="${value.deploy.splunk_home}/var/run/splunk/push-version.txt">${value.deploy.bump_updated}</echo>
     	
     	<echo>The push version was updated from ${value.deploy.bump} to ${value.deploy.bump_updated}</echo>
+    	
+    	<echo>Restarting Splunk's web interface...</echo>
+    	<antcall target="restart_splunk_web" />
     	
     </target>
 	
