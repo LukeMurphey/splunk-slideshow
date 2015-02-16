@@ -397,7 +397,7 @@ define([
         	var readyStateCheckInterval = setInterval(function() {
         		
         		// Stop if the window is closed or null
-        		if( this.slideshow_window.document === null || this.slideshow_window.document.closed || !this.slideshow_is_running ){
+        		if( this.slideshow_window === null || this.slideshow_window.closed || !this.slideshow_is_running ){
         			clearInterval(readyStateCheckInterval);
         			return;
         		}
@@ -456,6 +456,7 @@ define([
     		
     		// Set the progress
     		if( this.slideshow_progress_bar_created ){
+    			console.info("" + this.slideshow_time_spent.toString() + " for delay " + this.slideshow_delay.toString() + " is " + ((1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000)).toString() );
     			NProgress.set( (1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000) );
     		}
     		
