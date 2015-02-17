@@ -370,7 +370,7 @@ define([
         			&& this.slideshow_window.document.body.innerHTML.length > 0 ){
         			
         			// Load the CSS for the progress indicator
-        			this.addStylesheet("../../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
+        			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
         			
                	 	// Start the progress indicator
                	 	NProgress.configure({
@@ -384,7 +384,7 @@ define([
         	    	
         	    	// Hide the chrome if requested
         	    	if( this.slideshow_hide_chrome ){
-        	    		this.addStylesheet("../../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
+        	    		this.addStylesheet("../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
         	    		console.info("Successfully loaded the stylesheet for hiding chrome");
         	    	}
         	    	
