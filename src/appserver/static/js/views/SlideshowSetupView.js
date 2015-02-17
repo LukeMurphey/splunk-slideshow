@@ -45,7 +45,7 @@ define([
          * Setup the defaults
          */
         defaults: {
-        	'interval': 200
+        	'interval': 500
         },
         
         /**
@@ -72,7 +72,7 @@ define([
         	this.slideshow_views = null;
         	this.slideshow_delay = null;
         	this.slideshow_hide_chrome = null;
-        	this.slideshow_time_spent = 0;
+        	this.slideshow_view_loaded = null;
         	this.slideshow_progress_bar_created = false;
         	this.slideshow_is_running = false;
         	
@@ -209,7 +209,6 @@ define([
         	
         	// Start the process
         	this.slideshow_is_running = true;
-        	this.slideshow_time_spent = 0;
         	this.executeSlideshowCycle();
         	
         	// Show the start button
@@ -355,8 +354,6 @@ define([
         		this.slideshow_window.location = this.makeViewURL(view.name, view.app);
         	}
         	
-        	console.info("Setting up ready state check");
-        	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
         	var readyStateCheckInterval = setInterval(function() {
         		
@@ -397,15 +394,30 @@ define([
         	    }
         	}.bind(this), 10);
         	
+        	// Reset the time that the view was loaded
+        	this.slideshow_view_loaded = this.getNowTime();
+        	
+        },
+        
+        /**
+         * Get the current time in Unix epoch seconds.
+         */
+        getNowTime: function(){
+        	return new Date().getTime() / 1000;
+        },
+        
+        /**
+         * Return the number of seconds the given view has been displayed.
+         */
+        getSecondsInView: function(){
+        	
+        	return this.getNowTime() - this.slideshow_view_loaded;
         },
         
         /**
          * Execute the cycle of looking to determine if changes are necessary to the show.
          */
-        executeSlideshowCycle: function(){
-        	
-        	// Increment the timer
-        	this.slideshow_time_spent += this.interval;
+        executeSlideshowCycle: function(){;
         	
     		// If the window was closed, stop the show
     		if(this.slideshow_window === null || this.slideshow_window.closed || !this.slideshow_is_running){
@@ -413,15 +425,14 @@ define([
     			this.stopShow();
     			return false;
     		}
-    		else if(this.slideshow_time_spent >= (this.slideshow_delay * 1000)){
-    			this.slideshow_time_spent = 0;
+    		else if(this.getSecondsInView() >= this.slideshow_delay){
     			this.goToNextView();
     		}
     		
     		// Set the progress
     		if( this.slideshow_progress_bar_created ){
-    			//console.info("" + this.slideshow_time_spent.toString() + " for delay " + this.slideshow_delay.toString() + " is " + ((1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000)).toString() );
-    			NProgress.set( (1.0 * this.slideshow_time_spent) / (this.slideshow_delay * 1000) );
+    			//console.info("" + this.getSecondsInView() + " for delay " + this.slideshow_delay.toString() + " is " + (this.getSecondsInView() / this.slideshow_delay).toString() );
+    			NProgress.set( this.getSecondsInView() / this.slideshow_delay );
     		}
     		
         	// Schedule the next call
