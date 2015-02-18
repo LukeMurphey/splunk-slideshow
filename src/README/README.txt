@@ -43,4 +43,8 @@ Change History
 | 1.0     | Fixed grammar issue on the setup view                                                                            |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 1.0.1   | Updated icon for Splunk 6.2                                                                                      |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.0     | Completely updated backend that adds support for more views and apps (such as Enterprise Security)               |
+|         | Added ability to enter interval with units and use float values (like 1.5m for 1.5 minutes)                      |
+|         | Added predefined intervals                                                                                       |
 +---------+------------------------------------------------------------------------------------------------------------------+
