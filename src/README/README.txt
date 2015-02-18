@@ -46,5 +46,5 @@ Change History
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 2.0     | Completely updated backend that adds support for more views and apps (such as Enterprise Security)               |
 |         | Added ability to enter interval with units and use float values (like 1.5m for 1.5 minutes)                      |
-|         | Added predefined intervals                                                                                       |
+|         | Added predefined selectable intervals                                                                            |
 +---------+------------------------------------------------------------------------------------------------------------------+
