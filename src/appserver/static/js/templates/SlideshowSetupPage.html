@@ -38,8 +38,14 @@ When the show is started, the selected pages will be displayed for the amount of
  	<div id="delay_control_group" class="control-group">
 	  <fieldset>
 	    <label>Interval</label>
-	    <input type="text" name="delay" placeholder="for example, 60, for a 60 second interval" value="<%- delay %>">
-	    <span class="help-block">Defines how long (in seconds) to show each view before changing to the next one</span>
+	    <div class="input-append">
+	    	<input class="input-mini" type="text" name="delay" placeholder="for example, 1m, for a 1 minute interval" value="<%- delay %>">
+	    	<button class="btn predefined-interval" data-value="30s" type="button">30 secs</button>
+	    	<button class="btn predefined-interval" data-value="1m" type="button">1 min</button>
+  			<button class="btn predefined-interval" data-value="5m" type="button">5 min</button>
+  			<button class="btn predefined-interval" data-value="10m" type="button">10 min</button>
+		</div>
+	    <span class="help-block">Defines how long to show each view before changing to the next one</span>
 	    <span class="help-inline"></span>
 	  </fieldset>
 	</div>

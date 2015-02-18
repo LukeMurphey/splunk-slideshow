@@ -53,7 +53,8 @@ define([
          */
         events: {
         	"click #start_show" : "startShow",
-        	"click #stop_show" : "stopShow"
+        	"click #stop_show" : "stopShow",
+        	"click .predefined-interval" : "setPredefinedInterval"
         },
         
         initialize: function() {
@@ -100,6 +101,25 @@ define([
         			}
         	]
         	
+        	this.duration_units = [
+        	                       {
+        	                    	   'unit' : 'd',
+        	                    	   'number' : 86400
+        	                       },
+        	                       {
+        	                    	   'unit' : 'h',
+        	                    	   'number' : 3600
+        	                       },
+        	                       {
+        	                    	   'unit' : 'm',
+        	                    	   'number' : 60
+        	                       },
+        	                       {
+        	                    	   'unit' : 's',
+        	                    	   'number' : 1
+        	                       }
+        	                       ]
+        	
         },
         
         /**
@@ -108,6 +128,72 @@ define([
         showHelp: function(message_html){
         	$('#help-dialog-text', this.$el).html(message_html);
         	$('#help-dialog', this.$el).modal();
+        },
+        
+        /**
+         * Set the interval to one of the predefined ones.
+         */
+        setPredefinedInterval: function(element){
+        	$('[name="delay"]').val( $(element.currentTarget).data('value') );
+        },
+        
+        /**
+         * Take a duration description and return the number of seconds.
+         */
+        getSecondsFromReadableDuration: function(duration){
+        	
+        	var re = /^\s*([0-9]+([.][0-9]+)?)\s*([dhms])?\s*$/gi;
+        	var match = re.exec(duration);
+        	
+        	if( match ){
+        		number = parseFloat(match[1]);
+        		units = match[3];
+        		
+        		// If no units were provided, then assume seconds
+        		if( !units ){
+        			return number;
+        		}
+        		
+        		// Get the duration multiplier
+        		var multiplier = 1;
+        		
+        		for(var c = 0; c < this.duration_units.length; c++){
+        			if( this.duration_units[c]['unit'] === units ){
+        				multiplier = this.duration_units[c]['number'];
+        			}
+        		}
+        		
+        		// Return the number in seconds
+        		return multiplier * number;
+        		
+        	}
+        	
+        	// Couldn't get a match, number is invalid.
+        	return null;
+        },
+        
+        /**
+         * Take number of seconds and return the readable duration.
+         */
+        getReadableDurationFromSeconds: function(val){
+        	
+        	var seconds = this.parseFloatIfValid(val);
+        	
+        	// If the value is not valid, then stop
+        	if( isNaN(seconds) ){
+        		return val;
+        	}
+        	
+        	// Find the best matching unit
+    		for(var c = 0; c < this.duration_units.length; c++){
+    			if( (seconds % this.duration_units[c]['number']) === 0 ){
+    				return (seconds / this.duration_units[c]['number']).toString() + this.duration_units[c]['unit'];
+    			}
+    		}
+    		
+        	// No entry found, just convert it to seconds
+        	return seconds.toString() + "s";
+        	
         },
         
         /**
@@ -134,9 +220,10 @@ define([
         	var failures = 0;
         	
             // Verify that the delay is a valid integer between 1 and 100,000
-            failures += this.validateField( $('#delay_control_group'), $('[name="delay"]').val(), "Must be a valid integer of at least 1",
-                    function(val){ 
-                        return this.parseIntIfValid(val, 10) > 0 && this.parseIntIfValid(val, 10) < 100000;
+            failures += this.validateField( $('#delay_control_group'), $('[name="delay"]').val(), "Must be a valid duration greater than zero",
+                    function(val){
+            			var secs = this.getSecondsFromReadableDuration(val);
+                        return secs !== null && secs > 0;
                     }.bind(this)
             );
             
@@ -189,12 +276,14 @@ define([
         		})
         	}
         	
-        	var delay = $('[name="delay"]', this.$el).val();
+        	var delay_readable = $('[name="delay"]', this.$el).val();
+        	var delay = this.getSecondsFromReadableDuration( delay_readable );
         	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
         	
         	// Save the settings
         	store.set('views', views );
         	store.set('view_delay', delay);
+        	store.set('view_delay_readable', delay_readable);
         	store.set('hide_chrome', hide_chrome);
         	
         	// Initialize the slideshow parameters so that we can run the show
@@ -204,11 +293,13 @@ define([
         	this.slideshow_delay = delay;
         	this.slideshow_hide_chrome = hide_chrome;
         	
+        	// Note that the show has begun
+        	this.slideshow_is_running = true;
+        	
         	// Open the window with the first view
         	this.goToNextView();
         	
         	// Start the process
-        	this.slideshow_is_running = true;
         	this.executeSlideshowCycle();
         	
         	// Show the start button
@@ -310,13 +401,16 @@ define([
         	console.info("Changing to next view: " + view.name);
         	
         	// Make the window if necessary
-        	if( this.slideshow_window === null ){
+        	if( !this.slideshow_window ){
+        		
+        		// Make the window
         		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
         		
-        		// Stop of the window could not be opened
+        		// Stop if the window could not be opened
         		if(!this.slideshow_window && this.slideshow_is_running){
         			console.warn("Slideshow popup window was not defined; this is likely due to a popup blocker");
         			this.showPopupWasBlockedDialog();
+        			this.stopShow();
         		}
         		
         		// Detect if the window opened successfully
@@ -332,6 +426,7 @@ define([
 	        		    if(this.slideshow_window.innerHeight <= 0){
 	        		    	console.warn("Slideshow popup window has an inner height of zero; this is likely due to a popup blocker");
 	        		    	this.showPopupWasBlockedDialog();
+	        		    	this.stopShow();
 	        		    }
 	        		    else{
 	        		    	console.info("Popup window was created successfully (was not popup blocked)");
@@ -345,8 +440,9 @@ define([
         	else{
         		
         		// Stop if the window was closed
-        		if(this.slideshow_window === null || this.slideshow_window.closed){
+        		if(this.slideshow_window && this.slideshow_window.closed){
         			console.info("Window was closed, show will stop");
+        			this.stopShow();
         			return;
         		}
         		
@@ -358,7 +454,7 @@ define([
         	var readyStateCheckInterval = setInterval(function() {
         		
         		// Stop if the window is closed or null
-        		if( this.slideshow_window === null || this.slideshow_window.closed || !this.slideshow_is_running ){
+        		if(!this.slideshow_window || this.slideshow_window.closed || !this.slideshow_is_running){
         			clearInterval(readyStateCheckInterval);
         			return;
         		}
@@ -367,6 +463,7 @@ define([
         		if( (this.slideshow_window.document.readyState === 'loaded'
         			|| this.slideshow_window.document.readyState === 'interactive'
         			|| this.slideshow_window.document.readyState === 'complete')
+        			&& this.slideshow_window.document.body !== null
         			&& this.slideshow_window.document.body.innerHTML.length > 0 ){
         			
         			// Load the CSS for the progress indicator
@@ -410,7 +507,6 @@ define([
          * Return the number of seconds the given view has been displayed.
          */
         getSecondsInView: function(){
-        	
         	return this.getNowTime() - this.slideshow_view_loaded;
         },
         
@@ -420,7 +516,7 @@ define([
         executeSlideshowCycle: function(){;
         	
     		// If the window was closed, stop the show
-    		if(this.slideshow_window === null || this.slideshow_window.closed || !this.slideshow_is_running){
+    		if(!this.slideshow_window || this.slideshow_window.closed || !this.slideshow_is_running){
     			console.info("Window was closed, show will stop");
     			this.stopShow();
     			return false;
@@ -447,10 +543,11 @@ define([
          * Note that the show has stopped
          */
         stopShow: function(){
+        	
         	this.toggleStartButton(true);
         	
         	// Close the window if it has not been done so
-        	if( this.slideshow_window !== null ){
+        	if(this.slideshow_window){
 	        	this.slideshow_window.close();
 	        	this.slideshow_window = null;
         	}
@@ -478,15 +575,15 @@ define([
         /**
          * Parse the integer if it is valid; return NaN if it is not.
          */
-        parseIntIfValid: function(val){
+        parseFloatIfValid: function(val){
         	
-        	var intRegex = /^[-]?\d+$/;
+        	var floatRegex = /[0-9]+([.][0-9]+)?)/;
         	
-        	if( !intRegex.test(val) ){
+        	if( !floatRegex.test(val) ){
         		return NaN;
         	}
         	else{
-        		return parseInt(val, 10);
+        		return parseFloat(val);
         	}
         },
         
@@ -575,7 +672,7 @@ define([
          * Show a dialog noting that the popup was blocked.
          */
         showPopupWasBlockedDialog: function(){
-        	this.showHelp("Yikes, it looks like the popup window was blocked.<br /><br />Check your browser settings and update them if the show didn't appear.")
+        	this.showHelp("Yikes! It looks like the popup window was blocked.<br /><br />Check your browser settings and update them if the show didn't appear.")
         },
         
         /**
@@ -632,6 +729,7 @@ define([
         _render: function(){
         	
         	// Try to load the views from local storage
+        	var delay_readable = this.getStoredValueOrDefault('view_delay_readable', "");
         	var delay = this.getStoredValueOrDefault('view_delay', "");
         	var selected_views = this.getStoredValueOrDefault('views', []);
         	var load_app_resources = this.getStoredValueOrDefault('load_app_resources', true);
@@ -647,7 +745,7 @@ define([
         	// Render the HTML
         	this.$el.html(_.template(SlideshowSetupPageTemplate,{
         		available_views: this.filterUnsupportedViews(this.available_views),
-        		delay: delay,
+        		delay: delay_readable,
         		selected_views: selected_views_names,
         		load_app_resources: load_app_resources,
         		hide_chrome: hide_chrome
