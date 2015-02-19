@@ -76,6 +76,8 @@ define([
         	this.slideshow_progress_bar_created = false;
         	this.slideshow_is_running = false;
         	
+        	this.ready_state_check_interval = null;
+        	
         	this.view_overrides = [
         			{
         				'view' : 'incident_review',
@@ -399,6 +401,12 @@ define([
         	
         	console.info("Changing to next view: " + view.name);
         	
+        	// Clear the existing interval
+        	if(this.ready_state_check_interval){
+        		clearInterval(this.ready_state_check_interval);
+        		this.ready_state_check_interval = null;
+        	}
+        	
         	// Make the window if necessary
         	if( !this.slideshow_window ){
         		
@@ -450,11 +458,11 @@ define([
         	}
         	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
-        	var readyStateCheckInterval = setInterval(function() {
+        	this.ready_state_check_interval = setInterval(function() {
         		
         		// Stop if the window is closed or null
         		if(!this.slideshow_window || this.slideshow_window.closed || !this.slideshow_is_running){
-        			clearInterval(readyStateCheckInterval);
+        			clearInterval(this.ready_state_check_interval);
         			return;
         		}
         		
@@ -463,7 +471,11 @@ define([
         			|| this.slideshow_window.document.readyState === 'interactive'
         			|| this.slideshow_window.document.readyState === 'complete')
         			&& this.slideshow_window.document.body !== null
-        			&& this.slideshow_window.document.body.innerHTML.length > 0 ){
+        			&& this.slideshow_window.document.body.innerHTML.length > 0
+        			&& !$(this.slideshow_window.document.body).hasClass("slideshow-initialized") ){
+        			
+        			// Add a placeholder to track whether the CSS was loaded
+        			$(this.slideshow_window.document.body).addClass("slideshow-initialized");
         			
         			// Load the CSS for the progress indicator
         			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
@@ -474,7 +486,7 @@ define([
                	 							document: this.slideshow_window.document
                	 						});
                	 	
-               	 	NProgress.set(0.0);
+               	 	//NProgress.set(0.0);
                	 	
                	 	this.slideshow_progress_bar_created = true;
         	    	
@@ -483,12 +495,9 @@ define([
         	    		this.addStylesheet("../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
         	    		console.info("Successfully loaded the stylesheet for hiding chrome");
         	    	}
-        	    	
-        	    	// Were done
-        	    	clearInterval(readyStateCheckInterval);
         	       
         	    }
-        	}.bind(this), 10);
+        	}.bind(this), 200);
         	
         	// Reset the time that the view was loaded
         	this.slideshow_view_loaded = this.getNowTime();
