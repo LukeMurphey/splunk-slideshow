@@ -29,7 +29,6 @@ define([
     "splunkjs/mvc/simpleform/input/text",
     "text!../app/slideshow/js/templates/SlideshowSetupPage.html",
     "store",
-    "slideshow_player",
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "nprogress",
