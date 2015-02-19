@@ -164,9 +164,14 @@
     <!-- ================================= 
           target: deploy
          ================================= -->
-    <target name="deploy" depends="bump_splunk_if_necessary,setup_tmp_directory_for_deployment,populate_export_dir" description="Deploys the app to an instance of Splunk" >
+    <target name="deploy" depends="setup_tmp_directory_for_deployment,populate_export_dir" description="Deploys the app to an instance of Splunk" >
         <echo>App ${value.build.appname} build ${value.build.number} deployed to ${export_dir}</echo>
     </target>
+	
+    <!-- ================================= 
+         target: deploy_and_bump
+         ================================= -->
+    <target name="deploy_and_bump" depends="bump_splunk_if_necessary,deploy" description="Deploys the app to an instance of Splunk and bumps it" />
     
     <!-- ================================= 
           target: stop_splunk
