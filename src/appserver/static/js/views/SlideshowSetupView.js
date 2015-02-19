@@ -576,7 +576,7 @@ define([
          */
         parseFloatIfValid: function(val){
         	
-        	var floatRegex = /[0-9]+([.][0-9]+)?)/;
+        	var floatRegex = /[0-9]+([.][0-9]+)?/;
         	
         	if( !floatRegex.test(val) ){
         		return NaN;
