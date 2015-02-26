@@ -75,6 +75,7 @@ define([
         	this.slideshow_view_loaded = null;
         	this.slideshow_progress_bar_created = false;
         	this.slideshow_is_running = false;
+        	this.slideshow_invert_colors = false;
         	
         	this.ready_state_check_interval = null;
         	
@@ -280,12 +281,14 @@ define([
         	var delay_readable = $('[name="delay"]', this.$el).val();
         	var delay = this.getSecondsFromReadableDuration( delay_readable );
         	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
+        	var invert_colors = $('[name="invert_colors"]:first', this.$el).prop("checked");
         	
         	// Save the settings
         	store.set('views', views );
         	store.set('view_delay', delay);
         	store.set('view_delay_readable', delay_readable);
         	store.set('hide_chrome', hide_chrome);
+        	store.set('invert_colors', invert_colors);
         	
         	// Initialize the slideshow parameters so that we can run the show
         	this.slideshow_window = null;
@@ -293,6 +296,7 @@ define([
         	this.slideshow_views = views;
         	this.slideshow_delay = delay;
         	this.slideshow_hide_chrome = hide_chrome;
+        	this.slideshow_invert_colors = invert_colors;
         	
         	// Note that the show has begun
         	this.slideshow_is_running = true;
@@ -373,6 +377,58 @@ define([
         	
         	// Make the URL and return it
         	return "../" + app_to_use + "/" + view;
+        },
+        
+        /**
+         * Invert the colors of the document.
+         */
+        invertDocumentColors: function(win){
+        	
+        	doc = win.document;
+        	
+        	// the css we are going to inject
+        	var css = 'html {-webkit-filter: invert(100%);' +
+        	    '-moz-filter: invert(100%);' + 
+        	    '-o-filter: invert(100%);' + 
+        	    '-ms-filter: invert(100%);' +
+        	    'filter: invert(100%);' +
+        	    'height: 100%;' +
+        	    ((navigator.userAgent.indexOf("Firefox") > -1) ? 'background-color: black;' : '' ) +
+        	    'zoom: 1;' +
+        	    '}';
+        	
+        	// Add this for Internet Explorer
+        	if(window.navigator.userAgent.match(/Trident.*rv\:11\./)){
+        	    css = css + 'body:before {' +
+        	    'content:"";' +
+        	    'position:fixed;' +
+        	    'top:50%; left: 50%;' +
+        	    'z-index:9999;' +
+        	    'width:1px; height: 1px;' +
+        	    'outline:2999px solid invert;' +
+        	    '}'
+        	}
+        	
+        	head = doc.getElementsByTagName('head')[0],
+        	style = doc.createElement('style');
+
+        	// a hack, so you can "invert back" clicking the bookmarklet again
+        	/*
+        	if (!win.counter) { win.counter = 1;} else  { win.counter ++;
+        	if (win.counter % 2 == 0) { var css ='html {-webkit-filter: invert(0%); -moz-filter:    invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }'}
+        	 };
+        	 */
+
+        	style.type = 'text/css';
+        	
+        	if (style.styleSheet){
+        		style.styleSheet.cssText = css;
+        	} else {
+        		style.appendChild(doc.createTextNode(css));
+        	}
+
+        	//injecting the css to the head
+        	head.appendChild(style);
         },
         
         /**
@@ -486,14 +542,18 @@ define([
                	 							document: this.slideshow_window.document
                	 						});
                	 	
-               	 	//NProgress.set(0.0);
-               	 	
                	 	this.slideshow_progress_bar_created = true;
         	    	
         	    	// Hide the chrome if requested
         	    	if( this.slideshow_hide_chrome ){
         	    		this.addStylesheet("../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
         	    		console.info("Successfully loaded the stylesheet for hiding chrome");
+        	    	}
+        	    	
+        	    	// Invert the colors if requested
+        	    	if( this.slideshow_invert_colors ){
+        	    		this.invertDocumentColors(this.slideshow_window);
+        	    		console.info("Inverted the colors successfully");
         	    	}
         	       
         	    }
@@ -742,6 +802,7 @@ define([
         	var selected_views = this.getStoredValueOrDefault('views', []);
         	var load_app_resources = this.getStoredValueOrDefault('load_app_resources', true);
         	var hide_chrome = this.getStoredValueOrDefault('hide_chrome', false);
+        	var invert_colors = this.getStoredValueOrDefault('invert_colors', false);
 
         	// Extract a list of just the view names
         	var selected_views_names = [];
@@ -756,7 +817,8 @@ define([
         		delay: delay_readable,
         		selected_views: selected_views_names,
         		load_app_resources: load_app_resources,
-        		hide_chrome: hide_chrome
+        		hide_chrome: hide_chrome,
+        		invert_colors: invert_colors
         	}) );
         	
         	// Convert the list into a nice dual-list
