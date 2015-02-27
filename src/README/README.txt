@@ -50,5 +50,6 @@ Change History
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 2.1     | Added the ability to invert colors of the view in the show (to provide a dark theme)                             |
 |         | Fixed exception the occurred when the show was stopped in Internet Explorer                                      |
+|         | Scrollbars are now hidden when the "Hide controls" setting is enabled                                            |
 |         | Fixed issue where the slideshow always opened in a new window                                                    |
 +---------+------------------------------------------------------------------------------------------------------------------+
