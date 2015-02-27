@@ -412,13 +412,6 @@ define([
         	head = doc.getElementsByTagName('head')[0],
         	style = doc.createElement('style');
 
-        	// a hack, so you can "invert back" clicking the bookmarklet again
-        	/*
-        	if (!win.counter) { win.counter = 1;} else  { win.counter ++;
-        	if (win.counter % 2 == 0) { var css ='html {-webkit-filter: invert(0%); -moz-filter:    invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }'}
-        	 };
-        	 */
-
         	style.type = 'text/css';
         	
         	if (style.styleSheet){
@@ -427,7 +420,7 @@ define([
         		style.appendChild(doc.createTextNode(css));
         	}
 
-        	//injecting the css to the head
+        	// Inject the css to the head
         	head.appendChild(style);
         },
         
@@ -467,7 +460,7 @@ define([
         	if( !this.slideshow_window ){
         		
         		// Make the window
-        		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank", "toolbar=yes,fullscreen=yes,location=no,menubar=no,status=no,titlebar=no,toolbar=no,channelmode=yes");
+        		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank");
         		
         		// Stop if the window could not be opened
         		if(!this.slideshow_window && this.slideshow_is_running){
@@ -482,7 +475,7 @@ define([
         			setTimeout(function () {
         				
         				// Stop if the window was closed
-        				if(!this.slideshow_window || this.slideshow_window.closed){
+        				if(!this.isSlideshowWindowDefined()){
         					return;
         				}
         				
@@ -503,7 +496,7 @@ define([
         	else{
         		
         		// Stop if the window was closed
-        		if(this.slideshow_window && this.slideshow_window.closed){
+        		if(!this.isSlideshowWindowDefined()){
         			console.info("Window was closed, show will stop");
         			this.stopShow();
         			return;
@@ -517,7 +510,7 @@ define([
         	this.ready_state_check_interval = setInterval(function() {
         		
         		// Stop if the window is closed or null
-        		if(!this.slideshow_window || this.slideshow_window.closed || !this.slideshow_is_running){
+        		if(!this.isSlideshowWindowDefined() || !this.slideshow_is_running){
         			clearInterval(this.ready_state_check_interval);
         			return;
         		}
@@ -584,7 +577,7 @@ define([
         executeSlideshowCycle: function(){;
         	
     		// If the window was closed, stop the show
-    		if(!this.slideshow_window || this.slideshow_window.closed || !this.slideshow_is_running){
+    		if(!this.isSlideshowWindowDefined() || !this.slideshow_is_running){
     			console.info("Window was closed, show will stop");
     			this.stopShow();
     			return false;
@@ -594,7 +587,7 @@ define([
     		}
     		
     		// Set the progress
-    		if( this.slideshow_progress_bar_created ){
+    		if( this.slideshow_progress_bar_created && this.isSlideshowWindowDefined() ){
     			//console.info("" + this.getSecondsInView() + " for delay " + this.slideshow_delay.toString() + " is " + (this.getSecondsInView() / this.slideshow_delay).toString() );
     			NProgress.set( this.getSecondsInView() / this.slideshow_delay );
     		}
@@ -604,7 +597,13 @@ define([
         		this.executeSlideshowCycle();
         	}.bind(this), this.interval);
     		
-    		
+        },
+        
+        /**
+         * Determine if a slideshow window exists and is defined.
+         */
+        isSlideshowWindowDefined: function(){
+        	return this.slideshow_window !== null && this.slideshow_window !== undefined && !this.slideshow_window.closed;
         },
         
         /**
@@ -615,14 +614,9 @@ define([
         	this.toggleStartButton(true);
         	
         	// Close the window if it has not been done so
-        	if(this.slideshow_window){
+        	if( this.isSlideshowWindowDefined() ){
 	        	this.slideshow_window.close();
 	        	this.slideshow_window = null;
-        	}
-        	
-        	// Reset the progress bar
-        	if( this.slideshow_progress_bar_created ){
-        		NProgress.set(0.0);
         	}
         	
         	// Indicate that the show isn't running anymore
