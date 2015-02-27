@@ -380,6 +380,20 @@ define([
         },
         
         /**
+         * Is the browser Internet Explorer
+         */
+        isInternetExplorer: function(){
+        	return window.navigator.userAgent.match(/Trident.*rv\:11\./);
+        },
+        
+        /**
+         * Is the browser Firefox
+         */
+        isFirefox: function(){
+        	return navigator.userAgent.indexOf("Firefox") > -1;
+        },
+        
+        /**
          * Invert the colors of the document.
          */
         invertDocumentColors: function(win){
@@ -393,12 +407,12 @@ define([
         	    '-ms-filter: invert(100%);' +
         	    'filter: invert(100%);' +
         	    'height: 100%;' +
-        	    ((navigator.userAgent.indexOf("Firefox") > -1) ? 'background-color: black;' : '' ) +
+        	    (this.isFirefox() ? 'background-color: black;' : '' ) +
         	    'zoom: 1;' +
         	    '}';
         	
         	// Add this for Internet Explorer
-        	if(window.navigator.userAgent.match(/Trident.*rv\:11\./)){
+        	if( this.isInternetExplorer() ){
         	    css = css + 'body:before {' +
         	    'content:"";' +
         	    'position:fixed;' +
@@ -530,12 +544,14 @@ define([
         			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
         			
                	 	// Start the progress indicator
-               	 	NProgress.configure({
-               	 							showSpinner: false,
-               	 							document: this.slideshow_window.document
-               	 						});
-               	 	
-               	 	this.slideshow_progress_bar_created = true;
+        			if( !this.isInternetExplorer() ){
+	               	 	NProgress.configure({
+	               	 							showSpinner: false,
+	               	 							document: this.slideshow_window.document
+	               	 						});
+	               	 	
+	               	 	this.slideshow_progress_bar_created = true;
+        			}
         	    	
         	    	// Hide the chrome if requested
         	    	if( this.slideshow_hide_chrome ){
@@ -588,7 +604,6 @@ define([
     		
     		// Set the progress
     		if( this.slideshow_progress_bar_created && this.isSlideshowWindowDefined() ){
-    			//console.info("" + this.getSecondsInView() + " for delay " + this.slideshow_delay.toString() + " is " + (this.getSecondsInView() / this.slideshow_delay).toString() );
     			NProgress.set( this.getSecondsInView() / this.slideshow_delay );
     		}
     		
@@ -618,6 +633,9 @@ define([
 	        	this.slideshow_window.close();
 	        	this.slideshow_window = null;
         	}
+        	
+        	// Stop attempts to update the progress bar since the document it is associated with no longer exists
+        	this.slideshow_progress_bar_created = false;
         	
         	// Indicate that the show isn't running anymore
         	this.slideshow_is_running = false;
