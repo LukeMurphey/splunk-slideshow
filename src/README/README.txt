@@ -47,4 +47,8 @@ Change History
 | 2.0     | Completely updated backend that adds support for more views and apps (such as Enterprise Security)               |
 |         | Added ability to enter interval with units and use float values (like 1.5m for 1.5 minutes)                      |
 |         | Added predefined selectable intervals                                                                            |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.1     | Added the ability to invert colors of the view in the show (to provide a dark theme)                             |
+|         | Fixed exception the occurred when the show was stopped in Internet Explorer                                      |
+|         | Fixed issue where the slideshow always opened in a new window                                                    |
 +---------+------------------------------------------------------------------------------------------------------------------+
