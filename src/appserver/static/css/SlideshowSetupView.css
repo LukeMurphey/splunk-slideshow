@@ -83,3 +83,15 @@ input[type="checkbox"]{
   background-color: #942a25 \9;
 }
 */
+
+#showframe, #loadingframe{
+	width: 100%;
+	border: 0px;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+}
+
+#loadingframe{
+	height:1024px;
+}

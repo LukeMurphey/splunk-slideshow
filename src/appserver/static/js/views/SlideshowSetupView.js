@@ -44,7 +44,8 @@ define([
          * Setup the defaults
          */
         defaults: {
-        	'interval': 500
+        	'interval': 500,
+        	'use_iframe': true
         },
         
         /**
@@ -62,6 +63,7 @@ define([
         	this.options = _.extend({}, this.defaults, this.options);
         	
         	this.interval = this.options.interval;
+        	this.use_iframe = this.options.use_iframe;
         	
         	this.available_views = null;
         	this.available_apps = null;
@@ -333,7 +335,7 @@ define([
         /**
          * Make the URL to forward the user to.
          */
-        makeViewURL: function(view, app){
+        makeViewURL: function(view, app, hide_controls){
         	
         	var app_to_use = app;
         	
@@ -376,7 +378,43 @@ define([
         	}
         	
         	// Make the URL and return it
-        	return "../" + app_to_use + "/" + view;
+        	var url = "../" + app_to_use + "/" + view;
+        	
+        	if(hide_controls){
+        		url = url + "?hideEdit=true&hideTitle=true&hideSplunkBar=true&hideAppBar=true&hideFooter=true&targetTop=true";
+        	}
+        	
+        	return url;
+        },
+        
+        /**
+         * Show the loading frame
+         */
+        showLoadingFrame: function(){
+			// Make the loading frame if necessary
+			if($('#loadingframe').length === 0){
+				$('<iframe id="loadingframe">').appendTo('body');
+				$('#loadingframe').appendTo('body');
+				
+				var loadingframe = document.getElementById("loadingframe");
+				var loadingFrameDocument = loadingframe.contentDocument.document;
+				
+				$(".body", $("#loadingframe").contents()).css("margin", '0px').css("background-color", '#080808');
+				$(".body", $("#loadingframe").contents()).append('<div style="background-color: #080808; color: white; height:1024px"><div style="font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; top: 50%; position:relative; margin-left: auto; margin-right: auto; width: 100px";></div></div>');
+				
+				//$('#loadingframe').contents().find('body')[0].setAttribute('style', 'margin: 0px; background-color: #080808');
+				//$('#loadingframe').contents().find('body').append('<div style="background-color: #080808; color: white; height:1024px"><div style="font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; top: 50%; position:relative; margin-left: auto; margin-right: auto; width: 100px";></div></div>');
+			}
+			
+			$('#loadingframe').css("height", $(window).height());
+			$('#loadingframe').show();
+        },
+        
+        /**
+         * Hide the loading frame
+         */
+        hideLoadingFrame: function(){
+        	$('#loadingframe').hide();
         },
         
         /**
@@ -473,8 +511,39 @@ define([
         	// Make the window if necessary
         	if( !this.slideshow_window ){
         		
-        		// Make the window
-        		this.slideshow_window = window.open(this.makeViewURL(view.name, view.app), "_blank");
+        		// Make the window ...
+        		if(!this.use_iframe){
+        			this.slideshow_window = window.open(this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome), "_blank");
+        		}
+        		
+        		// ... or make the iframe
+        		else{
+        			
+        			// Make the frame if necessary
+        			if($('#showframe').length === 0){
+        				$('<iframe id="showframe">').appendTo('body');
+        				
+        				$('#showframe').ready(function() {
+        					console.log("hiding loading frame");
+        					$('#loadingframe').hide();
+        			    });
+        				
+        				$('#showframe').resize(function() {
+        					$('#showframe').css("height", $(window).height());
+        				});
+        			}
+        			
+        			$('#showframe').css("height", $(window).height());
+        			$('#showframe').show();
+        			
+        			// Show the loading frame
+        			this.showLoadingFrame();
+        			
+        			// Get a reference to the frame
+        			var showframe = document.getElementById("showframe");
+        			this.slideshow_window = showframe.contentWindow;
+        			this.slideshow_window.location = this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome);
+        		}
         		
         		// Stop if the window could not be opened
         		if(!this.slideshow_window && this.slideshow_is_running){
@@ -517,7 +586,10 @@ define([
         		}
         		
         		// Change to the new view
-        		this.slideshow_window.location = this.makeViewURL(view.name, view.app);
+        		this.slideshow_window.location = this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome);
+        		
+    			// Show the loading frame
+    			this.showLoadingFrame();
         	}
         	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
@@ -564,6 +636,9 @@ define([
         	    		this.invertDocumentColors(this.slideshow_window);
         	    		console.info("Inverted the colors successfully");
         	    	}
+        	    	
+        	    	// Hide the loading frame
+        	    	this.hideLoadingFrame();
         	       
         	    }
         	}.bind(this), 200);
@@ -632,6 +707,10 @@ define([
         	if( this.isSlideshowWindowDefined() ){
 	        	this.slideshow_window.close();
 	        	this.slideshow_window = null;
+	        	
+	        	if($('#showframe').length > 0){
+	        		$('#showframe').remove();
+	        	}
         	}
         	
         	// Stop attempts to update the progress bar since the document it is associated with no longer exists
@@ -639,6 +718,9 @@ define([
         	
         	// Indicate that the show isn't running anymore
         	this.slideshow_is_running = false;
+        	
+        	// Hide the loading frame if it is shown
+        	this.hideLoadingFrame();
         },
         
         /**
