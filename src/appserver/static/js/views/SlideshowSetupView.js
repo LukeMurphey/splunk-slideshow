@@ -455,7 +455,7 @@ define([
          * This is a delay check to hide the overlay controls when necessary
          */
         hideControlsDelayCheck: function(){
-        	console.info("Checking controls: " + (new Date().getTime() - this.hide_controls_last_mouse_move).toString());
+        	//console.info("Checking controls: " + (new Date().getTime() - this.hide_controls_last_mouse_move).toString());
         	
     		if( ((new Date().getTime() - this.hide_controls_last_mouse_move) >= 5000) && $("#overlay_stop_show").is(":visible") ){
     			console.info("Hiding the overlay controls");
