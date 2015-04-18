@@ -53,4 +53,6 @@ Change History
 |         | Scrollbars are now hidden when the "Hide controls" setting is enabled                                            |
 |         | Fixed issue where the slideshow always opened in a new window                                                    |
 |         | Removed support for the progress bar on Internet Explorer due to several issues when the window is closed        |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.2     | Modifying the view to use a new approach to rendering the show views                                             |
 +---------+------------------------------------------------------------------------------------------------------------------+
