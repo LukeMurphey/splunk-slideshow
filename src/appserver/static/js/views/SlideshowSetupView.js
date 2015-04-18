@@ -503,8 +503,14 @@ define([
 				
 				var loadingframe = document.getElementById("loadingframe");
 				var loadingFrameDocument = loadingframe.contentDocument.document;
-				
+			}
+			
+			// Set the background color as appropriate
+			if(this.slideshow_invert_colors){
 				$('#loadingframe').contents().find('body').css("margin", '0px').css("background-color", '#080808');
+			}
+			else{
+				$('#loadingframe').contents().find('body').css("margin", '0px').css("background-color", '#EAEAEA');
 			}
 			
 			$('#loadingframe').css("height", $(window).height());
