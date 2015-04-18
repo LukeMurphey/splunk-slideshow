@@ -79,6 +79,8 @@ define([
         	this.slideshow_is_running = false;
         	this.slideshow_invert_colors = false;
         	
+        	this.hide_controls_check_interval = null;
+        	this.hide_controls_time_delay = null;
         	this.ready_state_check_interval = null;
         	
         	this.view_overrides = [
@@ -437,6 +439,41 @@ define([
         },
         
         /**
+         * Wire up the slide frame controls
+         */
+        wireUpSlideFrameControls: function(){
+        	
+			// Store a reference to the window
+			var showframe = document.getElementById("showframe");
+			this.slideshow_window = showframe.contentWindow;
+        	
+        	// Wire up the handler to show the stop show option
+        	setTimeout(function(){
+            	$(this.slideshow_window.document).mousemove(function() {
+                		console.info("Mouse move detected; showing overlay controls");
+                		this.showOverlayControls();
+                		timedelay = 1;
+                		clearInterval(this.hide_controls_check_interval);
+                		this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
+                	}.bind(this));
+        	}.bind(this), 2000);
+        	
+        },
+        
+        /**
+         * This is a delay check to hide the overlay controls when necessary
+         */
+        hideControlsDelayCheck: function(){
+        	
+    		if(this.hide_controls_time_delay == 5){
+    			this.hideOverlayControls();
+    			this.hide_controls_time_delay = 1;
+    		}
+    		
+    		this.hide_controls_time_delay = this.hide_controls_time_delay + 1;
+        },
+        
+        /**
          * Show the frame that will contain the slideshow
          */
         showSlideshowFrame: function(){
@@ -445,11 +482,6 @@ define([
 			if($('#showframe').length === 0){
 				$('<iframe id="showframe">').appendTo('body');
 				
-				$('#showframe').ready(function() {
-					console.log("hiding loading frame");
-					$('#loadingframe').hide();
-			    });
-				
 				$('#showframe').resize(function() {
 					$('#showframe').css("height", $(window).height());
 				});
@@ -457,38 +489,14 @@ define([
 			
 			$('#showframe').css("height", $(window).height());
 			$('#showframe').show();
+        	
+			// Wire up the handler to hide the overlay controls
+        	this.hide_controls_time_delay = 1;
 			
-			// Store a reference to the window
-			var showframe = document.getElementById("showframe");
-			this.slideshow_window = showframe.contentWindow;
-			
-			// Wire up the handler to show and hide the overlay controls
-        	var timedelay = 1;
-        	
-        	var delayCheck = function(){
-        		
-        		if(timedelay == 5){
-        			this.hideOverlayControls();
-        			timedelay = 1;
-        		}
-        		
-        		timedelay = timedelay + 1;
-        	}.bind(this);
-        	
-        	// Wire up the handler to show the stop show option
-        	setTimeout(function(){
-            	$(this.slideshow_window.document).mousemove(function() {
-                		console.info("Mouse move detected; showing overlay controls");
-                		this.showOverlayControls();
-                		timedelay = 1;
-                		clearInterval(_delay);
-                		_delay = setInterval(delayCheck, 300);
-                	}.bind(this));
-        	}.bind(this), 2000);
-        	
+			this.wireUpSlideFrameControls();
+
         	// page loads starts delay timer
-        	_delay = setInterval(delayCheck, 500);
-        	
+			this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
         },
         
         /**
@@ -681,6 +689,8 @@ define([
         		
     			// Show the loading frame
     			this.showLoadingFrame();
+    			
+    			this.wireUpSlideFrameControls();
         	}
         	
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
