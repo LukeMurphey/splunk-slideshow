@@ -415,6 +415,7 @@ define([
          */
         hideOverlayControls: function(dofast){
         	
+        	// Provide a default argument
         	if(typeof dofast === 'undefined'){
         		dofast = false;
         	}
@@ -425,6 +426,8 @@ define([
         	
 			$('#overlay-controls').animate({
 				top: "-100"
+			}, function() {
+				$('#overlay-controls').hide();
 			});
         	
         },
@@ -454,7 +457,8 @@ define([
         hideControlsDelayCheck: function(){
         	console.info("Checking controls: " + (new Date().getTime() - this.hide_controls_last_mouse_move).toString());
         	
-    		if((new Date().getTime() - this.hide_controls_last_mouse_move) >= 5000){
+    		if( ((new Date().getTime() - this.hide_controls_last_mouse_move) >= 5000) && $("#overlay_stop_show").is(":visible") ){
+    			console.info("Hiding the overlay controls");
     			this.hideOverlayControls();
     		}
     		
