@@ -467,7 +467,7 @@ define([
 			if($('#showframe').length === 0){
 				$('<iframe id="showframe">').appendTo('body');
 				
-				$('#showframe').resize(function() {
+				$(window).resize(function() {
 					$('#showframe').css("height", $(window).height());
 				});
 			}
