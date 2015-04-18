@@ -316,6 +316,9 @@ define([
         	
         	// Show the start button
         	this.toggleStartButton(false);
+        	
+        	// Hide the scrollbars on the main view
+        	$("body").css('overflow', 'hidden');
         },
         
         /**
@@ -809,6 +812,9 @@ define([
         	// Hide the loading and overlay control frames if it is shown
         	this.hideLoadingFrame();
         	this.hideOverlayControls(true);
+        	
+        	// Show the scrollbars on the main view
+        	$("body").css('overflow', 'initial');
         },
         
         /**
