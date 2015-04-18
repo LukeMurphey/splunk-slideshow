@@ -94,10 +94,11 @@ input[type="checkbox"]{
 
 #loadingframe{
 	height:1024px;
+	z-index: 100;
 }
 
 #overlayframe{
 	height:164px;
-	z-index: 100;
+	z-index: 101;
 	top: -100px;
 }

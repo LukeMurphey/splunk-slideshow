@@ -504,8 +504,7 @@ define([
 				var loadingframe = document.getElementById("loadingframe");
 				var loadingFrameDocument = loadingframe.contentDocument.document;
 				
-				$(".body", $("#loadingframe").contents()).css("margin", '0px').css("background-color", '#080808');
-				$(".body", $("#loadingframe").contents()).append('<div style="background-color: #080808; color: white; height:1024px"><div style="font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; top: 50%; position:relative; margin-left: auto; margin-right: auto; width: 100px";></div></div>');
+				$('#loadingframe').contents().find('body').css("margin", '0px').css("background-color", '#080808');
 			}
 			
 			$('#loadingframe').css("height", $(window).height());
@@ -724,7 +723,7 @@ define([
         	    	}
         	    	
         	    	// Hide the loading frame
-        	    	this.hideLoadingFrame();
+        	    	setTimeout(function(){console.info("Hiding the loading frame"); this.hideLoadingFrame()}.bind(this), 2000);
         	       
         	    }
         	}.bind(this), 200);
