@@ -84,7 +84,7 @@ input[type="checkbox"]{
 }
 */
 
-#showframe, #loadingframe{
+#showframe, #loadingframe, #overlayframe{
 	width: 100%;
 	border: 0px;
 	position: fixed;
@@ -94,4 +94,10 @@ input[type="checkbox"]{
 
 #loadingframe{
 	height:1024px;
+}
+
+#overlayframe{
+	height:164px;
+	z-index: 100;
+	top: -100px;
 }

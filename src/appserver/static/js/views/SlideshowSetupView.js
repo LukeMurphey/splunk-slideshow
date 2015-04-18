@@ -388,9 +388,114 @@ define([
         },
         
         /**
+         * Show the overlay controls
+         */
+        showOverlayControls: function(){
+        	
+			// Make the frame if necessary
+			if($('#overlayframe').length === 0){
+				$('<iframe id="overlayframe">').appendTo('body');
+				$('#overlayframe').appendTo('body');
+				
+				//$('#overlayframe').contents().find('body')[0].setAttribute('style', 'margin: 0px; background-color: white');
+				$('#overlayframe').contents().find('body').append('<div style="background-color: white; border-radius: 5px; border: 1px solid rgb(158, 158, 158); width: 250px; height:40px; font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; \
+						top: 50%; margin-left: auto; margin-right: auto; padding:4px;";> \
+						<div style="margin-top: 12px; font-size: 8pt; float:left">Slideshow is running</div> \
+						<button id="overlaystopshow" style="display: block; margin-top: 12px; margin-left: auto; float:right; margin-right: auto; width: 100px">Stop show</button> \
+						</div>');
+				
+			}
+			
+			// Wire up the stop button
+			var overlayframe = document.getElementById("overlayframe");
+			$(overlayframe.contentWindow.document.getElementById("overlaystopshow")).click( function(){ this.stopShow() }.bind(this) );
+			
+			// Show the overlay
+			$('#overlayframe').show();
+			$('#overlayframe').animate({
+				top: "0"
+			});
+        },
+        
+        /**
+         * Hide the overlay controls
+         */
+        hideOverlayControls: function(dofast){
+        	
+        	if(typeof dofast === 'undefined'){
+        		dofast = false;
+        	}
+        	
+        	if(dofast){
+        		$('#overlayframe').hide();
+        	}
+        	
+			$('#overlayframe').animate({
+				top: "-100"
+			});
+        	
+        },
+        
+        /**
+         * Show the frame that will contain the slideshow
+         */
+        showSlideshowFrame: function(){
+        	
+			// Make the frame if necessary
+			if($('#showframe').length === 0){
+				$('<iframe id="showframe">').appendTo('body');
+				
+				$('#showframe').ready(function() {
+					console.log("hiding loading frame");
+					$('#loadingframe').hide();
+			    });
+				
+				$('#showframe').resize(function() {
+					$('#showframe').css("height", $(window).height());
+				});
+			}
+			
+			$('#showframe').css("height", $(window).height());
+			$('#showframe').show();
+			
+			// Store a reference to the window
+			var showframe = document.getElementById("showframe");
+			this.slideshow_window = showframe.contentWindow;
+			
+			// Wire up the handler to show and hide the overlay controls
+        	var timedelay = 1;
+        	
+        	var delayCheck = function(){
+        		
+        		if(timedelay == 5){
+        			this.hideOverlayControls();
+        			timedelay = 1;
+        		}
+        		
+        		timedelay = timedelay + 1;
+        	}.bind(this);
+        	
+        	// Wire up the handler to show the stop show option
+        	setTimeout(function(){
+            	$(this.slideshow_window.document).mousemove(function() {
+                		console.info("Mouse move detected; showing overlay controls");
+                		this.showOverlayControls();
+                		timedelay = 1;
+                		clearInterval(_delay);
+                		_delay = setInterval(delayCheck, 300);
+                	}.bind(this));
+        	}.bind(this), 2000);
+        	
+        	// page loads starts delay timer
+        	_delay = setInterval(delayCheck, 500);
+        	
+        },
+        
+        /**
          * Show the loading frame
          */
         showLoadingFrame: function(){
+        	
 			// Make the loading frame if necessary
 			if($('#loadingframe').length === 0){
 				$('<iframe id="loadingframe">').appendTo('body');
@@ -401,9 +506,6 @@ define([
 				
 				$(".body", $("#loadingframe").contents()).css("margin", '0px').css("background-color", '#080808');
 				$(".body", $("#loadingframe").contents()).append('<div style="background-color: #080808; color: white; height:1024px"><div style="font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; top: 50%; position:relative; margin-left: auto; margin-right: auto; width: 100px";></div></div>');
-				
-				//$('#loadingframe').contents().find('body')[0].setAttribute('style', 'margin: 0px; background-color: #080808');
-				//$('#loadingframe').contents().find('body').append('<div style="background-color: #080808; color: white; height:1024px"><div style="font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; top: 50%; position:relative; margin-left: auto; margin-right: auto; width: 100px";></div></div>');
 			}
 			
 			$('#loadingframe').css("height", $(window).height());
@@ -519,29 +621,13 @@ define([
         		// ... or make the iframe
         		else{
         			
-        			// Make the frame if necessary
-        			if($('#showframe').length === 0){
-        				$('<iframe id="showframe">').appendTo('body');
-        				
-        				$('#showframe').ready(function() {
-        					console.log("hiding loading frame");
-        					$('#loadingframe').hide();
-        			    });
-        				
-        				$('#showframe').resize(function() {
-        					$('#showframe').css("height", $(window).height());
-        				});
-        			}
-        			
-        			$('#showframe').css("height", $(window).height());
-        			$('#showframe').show();
+        			// Make the frame window
+        			this.showSlideshowFrame();
         			
         			// Show the loading frame
         			this.showLoadingFrame();
         			
-        			// Get a reference to the frame
-        			var showframe = document.getElementById("showframe");
-        			this.slideshow_window = showframe.contentWindow;
+        			// Go to the first view
         			this.slideshow_window.location = this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome);
         		}
         		
@@ -719,8 +805,9 @@ define([
         	// Indicate that the show isn't running anymore
         	this.slideshow_is_running = false;
         	
-        	// Hide the loading frame if it is shown
+        	// Hide the loading and overlay control frames if it is shown
         	this.hideLoadingFrame();
+        	this.hideOverlayControls(true);
         },
         
         /**
