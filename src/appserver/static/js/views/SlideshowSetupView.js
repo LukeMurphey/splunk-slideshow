@@ -81,7 +81,6 @@ define([
         	this.slideshow_invert_colors = false;
         	
         	this.hide_controls_check_interval = null;
-        	this.hide_controls_time_delay = null;
         	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
         	
@@ -479,8 +478,6 @@ define([
 			$('#showframe').show();
         	
 			// Wire up the handler to hide the overlay controls
-        	this.hide_controls_time_delay = 1;
-			
 			this.wireUpSlideFrameControls();
 			
 			if(this.hide_controls_check_interval === null){
