@@ -82,7 +82,9 @@ define([
         	
         	this.hide_controls_check_interval = null;
         	this.hide_controls_time_delay = null;
+        	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
+        	
         	
         	this.view_overrides = [
         			{
@@ -395,6 +397,9 @@ define([
          */
         showOverlayControls: function(){
 			
+        	// Note when the activity occurred
+    		this.hide_controls_last_mouse_move = new Date().getTime();
+        	
 			// Show the overlay
 			$('#overlay-controls').show();
 			$('#overlay-controls').animate({
@@ -436,9 +441,6 @@ define([
             	$(this.slideshow_window.document).mousemove(function() {
                 		console.info("Mouse move detected; showing overlay controls");
                 		this.showOverlayControls();
-                		timedelay = 1;
-                		clearInterval(this.hide_controls_check_interval);
-                		this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
                 	}.bind(this));
         	}.bind(this), 2000);
         	
@@ -448,13 +450,12 @@ define([
          * This is a delay check to hide the overlay controls when necessary
          */
         hideControlsDelayCheck: function(){
+        	console.info("Checking controls: " + (new Date().getTime() - this.hide_controls_last_mouse_move).toString());
         	
-    		if(this.hide_controls_time_delay == 5){
+    		if((new Date().getTime() - this.hide_controls_last_mouse_move) >= 5000){
     			this.hideOverlayControls();
-    			this.hide_controls_time_delay = 1;
     		}
     		
-    		this.hide_controls_time_delay = this.hide_controls_time_delay + 1;
         },
         
         /**
@@ -478,9 +479,10 @@ define([
         	this.hide_controls_time_delay = 1;
 			
 			this.wireUpSlideFrameControls();
-
-        	// page loads starts delay timer
-			this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
+			
+			if(this.hide_controls_check_interval === null){
+				this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
+			}
         },
         
         /**
