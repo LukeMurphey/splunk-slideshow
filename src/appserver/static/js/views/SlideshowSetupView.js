@@ -54,7 +54,8 @@ define([
         events: {
         	"click #start_show" : "startShow",
         	"click #stop_show" : "stopShow",
-        	"click .predefined-interval" : "setPredefinedInterval"
+        	"click .predefined-interval" : "setPredefinedInterval",
+        	"click #overlay_stop_show": "stopShow"
         },
         
         initialize: function() {
@@ -393,30 +394,13 @@ define([
          * Show the overlay controls
          */
         showOverlayControls: function(){
-        	
-			// Make the frame if necessary
-			if($('#overlayframe').length === 0){
-				$('<iframe id="overlayframe">').appendTo('body');
-				$('#overlayframe').appendTo('body');
-				
-				//$('#overlayframe').contents().find('body')[0].setAttribute('style', 'margin: 0px; background-color: white');
-				$('#overlayframe').contents().find('body').append('<div style="background-color: white; border-radius: 5px; border: 1px solid rgb(158, 158, 158); width: 250px; height:40px; font-family: Roboto, Droid, \'Helvetica Neue\', Helvetica, Arial, sans-serif; \
-						top: 50%; margin-left: auto; margin-right: auto; padding:4px;";> \
-						<div style="margin-top: 12px; font-size: 8pt; float:left">Slideshow is running</div> \
-						<button id="overlaystopshow" style="display: block; margin-top: 12px; margin-left: auto; float:right; margin-right: auto; width: 100px">Stop show</button> \
-						</div>');
-				
-			}
-			
-			// Wire up the stop button
-			var overlayframe = document.getElementById("overlayframe");
-			$(overlayframe.contentWindow.document.getElementById("overlaystopshow")).click( function(){ this.stopShow() }.bind(this) );
 			
 			// Show the overlay
-			$('#overlayframe').show();
-			$('#overlayframe').animate({
+			$('#overlay-controls').show();
+			$('#overlay-controls').animate({
 				top: "0"
 			});
+			
         },
         
         /**
@@ -429,10 +413,10 @@ define([
         	}
         	
         	if(dofast){
-        		$('#overlayframe').hide();
+        		$('#overlay-controls').hide();
         	}
         	
-			$('#overlayframe').animate({
+			$('#overlay-controls').animate({
 				top: "-100"
 			});
         	
