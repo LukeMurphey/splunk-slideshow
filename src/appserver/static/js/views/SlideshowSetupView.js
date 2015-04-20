@@ -725,7 +725,10 @@ define([
         	    	}
         	    	
         	    	// Hide the loading frame
-        	    	setTimeout(function(){console.info("Hiding the loading frame"); this.hideLoadingFrame()}.bind(this), 2000);
+        	    	setTimeout(function(){
+        	    		console.info("Hiding the loading frame");
+        	    		this.hideLoadingFrame()
+        	    	}.bind(this), 2000);
         	       
         	    }
         	}.bind(this), 200);
