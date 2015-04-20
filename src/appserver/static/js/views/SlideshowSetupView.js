@@ -483,10 +483,6 @@ define([
         	
 			// Wire up the handler to hide the overlay controls
 			this.wireUpSlideFrameControls();
-			
-			if(this.hide_controls_check_interval === null){
-				this.hide_controls_check_interval = setInterval(this.hideControlsDelayCheck.bind(this), 500);
-			}
         },
         
         /**
@@ -772,6 +768,9 @@ define([
     		if( this.slideshow_progress_bar_created && this.isSlideshowWindowDefined() ){
     			NProgress.set( this.getSecondsInView() / this.slideshow_delay );
     		}
+    		
+    		// Hide the overlay if necessary
+    		this.hideControlsDelayCheck();
     		
         	// Schedule the next call
         	window.setTimeout( function(){
