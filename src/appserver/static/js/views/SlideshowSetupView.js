@@ -76,11 +76,11 @@ define([
         	this.slideshow_delay = null;
         	this.slideshow_hide_chrome = null;
         	this.slideshow_view_loaded = null;
+        	this.slideshow_view_ready = null;
         	this.slideshow_progress_bar_created = false;
         	this.slideshow_is_running = false;
         	this.slideshow_invert_colors = false;
         	
-        	this.hide_controls_check_interval = null;
         	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
         	
@@ -398,12 +398,11 @@ define([
          * Show the overlay controls
          */
         showOverlayControls: function(){
-			
+        	
         	// Note when the activity occurred
     		this.hide_controls_last_mouse_move = new Date().getTime();
         	
-			// Show the overlay
-			$('#overlay-controls').show();
+    		$('#overlay-controls').show();
 			$('#overlay-controls').animate({
 				top: "0"
 			});
@@ -443,9 +442,15 @@ define([
         	
         	// Wire up the handler to show the stop show option
         	setTimeout(function(){
+        		
             	$(this.slideshow_window.document).mousemove(function() {
-                		console.info("Mouse move detected; showing overlay controls");
-                		this.showOverlayControls();
+            		
+            		// Don't show the overlay controls within the first few seconds. We get some false mousemove events that occur when the views are swapped out.
+            		if( this.getSecondsReady() > 3 ){
+            			console.info("Mouse move detected; showing overlay controls");
+            			this.showOverlayControls();
+            		}
+            		
                 	}.bind(this));
         	}.bind(this), 2000);
         	
@@ -457,10 +462,21 @@ define([
         hideControlsDelayCheck: function(){
         	//console.info("Checking controls: " + (new Date().getTime() - this.hide_controls_last_mouse_move).toString());
         	
-    		if( ((new Date().getTime() - this.hide_controls_last_mouse_move) >= 5000) && $("#overlay_stop_show").is(":visible") ){
-    			console.info("Hiding the overlay controls");
-    			this.hideOverlayControls();
-    		}
+        	if( $("#overlay_stop_show").is(":visible") ){
+        		var delay = (new Date().getTime() - this.hide_controls_last_mouse_move);
+        		
+        		// If the overlay controls were open for 8 seconds or more, force the dialog closed. This is sometimes necessary because the browser was unable to get the chance to run the close animation.
+	    		if( delay >= 8000 ){
+	    			console.info("Hiding the overlay controls (forcefully)");
+	    			this.hideOverlayControls(true);
+	    		}
+	    		
+	    		// Otherwise, animate the dialog closure
+	    		else if( delay >= 5000 ){
+	    			console.info("Hiding the overlay controls");
+	    			this.hideOverlayControls();
+	    		}
+        	}
     		
         },
         
@@ -727,7 +743,8 @@ define([
         	    	// Hide the loading frame
         	    	setTimeout(function(){
         	    		console.info("Hiding the loading frame");
-        	    		this.hideLoadingFrame()
+        	    		this.hideLoadingFrame();
+        	    		this.slideshow_view_ready = this.getNowTime();
         	    	}.bind(this), 2000);
         	       
         	    }
@@ -735,6 +752,7 @@ define([
         	
         	// Reset the time that the view was loaded
         	this.slideshow_view_loaded = this.getNowTime();
+        	this.slideshow_view_ready = null;
         	
         },
         
@@ -750,6 +768,18 @@ define([
          */
         getSecondsInView: function(){
         	return this.getNowTime() - this.slideshow_view_loaded;
+        },
+        
+        /**
+         * Return the number of seconds the given view has been ready.
+         */
+        getSecondsReady: function(){
+        	
+        	if( this.slideshow_view_ready === null ){
+        		return 0;
+        	}
+        	
+        	return this.getNowTime() - this.slideshow_view_ready;
         },
         
         /**
