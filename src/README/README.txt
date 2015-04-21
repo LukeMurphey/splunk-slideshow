@@ -54,5 +54,8 @@ Change History
 |         | Fixed issue where the slideshow always opened in a new window                                                    |
 |         | Removed support for the progress bar on Internet Explorer due to several issues when the window is closed        |
 |---------|------------------------------------------------------------------------------------------------------------------|
-| 2.2     | Modifying the view to use a new approach to rendering the show views                                             |
+| 2.2     | Modifying the view to use a new approach to rendering the show views which:                                      |
+|         |   1) Eliminates the flashing that happens when a view is being switched                                          |
+|         |   2) Eliminates the moving of controls, header and footer when controls are to be hidden                         |
+|         |   3) Adds the ability to stop a show within the slideshow window                                                 |
 +---------+------------------------------------------------------------------------------------------------------------------+
