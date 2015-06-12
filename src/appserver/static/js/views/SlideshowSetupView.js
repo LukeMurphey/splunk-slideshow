@@ -55,7 +55,8 @@ define([
         	"click #start_show" : "startShow",
         	"click #stop_show" : "stopShow",
         	"click .predefined-interval" : "setPredefinedInterval",
-        	"click #overlay_stop_show": "stopShow"
+        	"click #overlay_stop_show": "stopShow",
+        	"click #help_dashboards_list" : "showDashboardsListHelp"
         },
         
         initialize: function() {
@@ -955,6 +956,17 @@ define([
         	// Get the list of apps. We will need to make sure we don't forward the user to an app that is not visible.
         	this.retrieveApps();
         
+        },
+        
+        /**
+         * Show the dashboard help text.
+         */
+        showDashboardsListHelp: function(){
+        	this.showHelp('<p>The dashboards listed for viewing are limited to those that this app can be shown in a slideshow. If a view is excluded in the list then most likely the permissions are set too restrictively. <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/SearchTutorial/Aboutdashboards#Change_dashboard_permissions">Check the permissions</a> and modify them to share the dashboards with all apps.</p>' +
+        				  '<p>If you want information regarding why a view is not listed, see <a target="_blank" href="slideshow_supportability">the view supportability dashboard</a> for more information.</p>' +
+        			      '<p>If you want to make a new view, then see the <a target="_blank" href="http://docs.splunk.com/Documentation/Splunk/latest/Viz/CreateandeditdashboardsviatheUI">Splunk documentation</a> for help.</p>');
+        	
+        	return false;
         },
         
         /**
