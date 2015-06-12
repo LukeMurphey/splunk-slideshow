@@ -58,4 +58,6 @@ Change History
 |         |   1) Eliminates the flashing that happens when a view is being switched                                          |
 |         |   2) Eliminates the moving of controls, header and footer when controls are to be hidden                         |
 |         |   3) Adds the ability to stop a show within the slide-show window                                                |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.2.1   | Added view and information to help explain why some views are not listed                                         |
 +---------+------------------------------------------------------------------------------------------------------------------+
