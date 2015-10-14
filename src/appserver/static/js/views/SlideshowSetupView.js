@@ -563,7 +563,7 @@ define([
         	    '-ms-filter: invert(100%);' +
         	    'filter: invert(100%);' +
         	    'height: 100%;' +
-        	    (this.isFirefox() ? 'background-color: black;' : '' ) +
+        	    'background-color: black;' +   
         	    'zoom: 1;' +
         	    '}';
         	
@@ -589,7 +589,7 @@ define([
         	} else {
         		style.appendChild(doc.createTextNode(css));
         	}
-
+        	
         	// Inject the css to the head
         	head.appendChild(style);
         },
