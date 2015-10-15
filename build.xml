@@ -121,8 +121,7 @@
         </copy>
     	
 		<!-- The mapper to map the original source files to the minified versions with the same name, but different path -->
-		<mapper id="minified_js_mapper" type="glob" from="*.js" to="${export_dir}${value.build.appname}/*.js" />
-    	<mapper id="minified_css_mapper" type="glob" from="*.css" to="${export_dir}${value.build.appname}/*.css" />
+    	<mapper id="to_export_dir_mapper" type="glob" from="*" to="${export_dir}/${value.build.appname}/*" />
     	
 		<!-- Minify the Javascript files -->		
 	    <apply executable="java" parallel="false">
@@ -130,29 +129,17 @@
 	    	<!-- Source of the files -->	
 	        <fileset dir="${basedir}/src">
 	    		<include name="**/*.js" />
-	    		<exclude name="**/*.min.js"/> <!-- Exclude already minified files -->
+	        	<include name="**/*.css" />
+	        	
+	        	 <!-- Exclude already minified files -->
+	        	<exclude name="**/*.min.css"/>
+	    		<exclude name="**/*.min.js"/>
 	        </fileset>
 	        <arg line="-jar" />
 	        <arg path="lib/yuicompressor-2.4.8.jar" />
 	        <srcfile />
 	        <arg line="-o"/>
-	    	<mapper refid="minified_js_mapper" />
-	        <targetfile />
-	    </apply>
-    	
-		<!-- Minify the stylesheet files -->		
-	    <apply executable="java" parallel="false">
-	    	
-	    	<!-- Source of the files -->	
-	        <fileset dir="${basedir}/src">
-	    		<include name="**/*.css" />
-	    		<exclude name="**/*.min.css"/> <!-- Exclude already minified files -->
-	        </fileset>
-	        <arg line="-jar" />
-	        <arg path="lib/yuicompressor-2.4.8.jar" />
-	        <srcfile />
-	        <arg line="-o"/>
-	    	<mapper refid="minified_css_mapper" />
+	    	<mapper refid="to_export_dir_mapper" />
 	        <targetfile />
 	    </apply>
 
@@ -191,7 +178,7 @@
     <target name="setup_tmp_directory_for_deployment">
         
         <!-- Create a reference to the directory to send the files to -->
-        <property name="export_dir" value="${value.deploy.splunk_home}/etc/apps/" />
+        <property name="export_dir" value="${value.deploy.splunk_home}/etc/apps" />
         
         <!-- Make the app directory if it does not yet exist -->
         <mkdir dir="${export_dir}" />
