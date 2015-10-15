@@ -60,4 +60,7 @@ Change History
 |         |   3) Adds the ability to stop a show within the slide-show window                                                |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 2.2.1   | Added view and information to help explain why some views are not listed                                         |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.2.2   | Fixed issue where the bottom of some screens was not black even when the invert colors mode was on               |
+|         | CSS and JS files are no minified to decrease load times                                                          |
 +---------+------------------------------------------------------------------------------------------------------------------+
