@@ -130,10 +130,6 @@
 	        <fileset dir="${basedir}/src">
 	    		<include name="**/*.js" />
 	        	<include name="**/*.css" />
-	        	
-	        	 <!-- Exclude already minified files -->
-	        	<exclude name="**/*.min.css"/>
-	    		<exclude name="**/*.min.js"/>
 	        </fileset>
 	        <arg line="-jar" />
 	        <arg path="lib/yuicompressor-2.4.8.jar" />
