@@ -18,7 +18,18 @@
           <include name="*.jar" />
         </fileset>
     </path>
-    
+	
+    <!-- ================================= 
+          target: initialize_libraries
+         ================================= -->
+	<target name="initialize_libraries">
+		<taskdef resource="net/sf/antcontrib/antlib.xml">
+		     <classpath>
+		    	<pathelement location="${basedir}/lib/ant-contrib-0.6.jar"/>
+		     </classpath>
+		</taskdef>
+	</target>
+	
     <!-- ================================= 
           target: clean
          ================================= -->
@@ -91,7 +102,7 @@
     <!-- ================================= 
           target: populate_export_dir
          ================================= -->
-    <target name="populate_export_dir" depends="get_build_number">
+    <target name="populate_export_dir" depends="get_build_number,initialize_libraries">
     	
         <!-- Copy the files over that need substitution. This should only be
              applied to text files since Ant may corrupt binary files otherwise. -->
@@ -120,24 +131,42 @@
             </fileset>
         </copy>
     	
-		<!-- The mapper to map the original source files to the minified versions with the same name, but different path -->
-    	<mapper id="to_export_dir_mapper" type="glob" from="*" to="${export_dir}/${value.build.appname}/*" />
-    	
-		<!-- Minify the Javascript files -->		
-	    <apply executable="java" parallel="false">
-	    	
-	    	<!-- Source of the files -->	
-	        <fileset dir="${basedir}/src">
-	    		<include name="**/*.js" />
-	        	<include name="**/*.css" />
-	        </fileset>
-	        <arg line="-jar" />
-	        <arg path="lib/yuicompressor-2.4.8.jar" />
-	        <srcfile />
-	        <arg line="-o"/>
-	    	<mapper refid="to_export_dir_mapper" />
-	        <targetfile />
-	    </apply>
+    	<!-- Deploy the CSS and JS (and optionally optimize it) -->
+    	<if>
+    		<or>
+    			<equals arg1="${value.build.optimize}" arg2="true" />
+    			<equals arg1="${value.build.optimize}" arg2="1" />
+    		</or>
+    		<then>
+				<!-- The mapper to map the original source files to the minified versions with the same name, but different path -->
+		    	<mapper id="to_export_dir_mapper" type="glob" from="*" to="${export_dir}/${value.build.appname}/*" />
+		    	
+				<!-- Minify the Javascript files -->		
+			    <apply executable="java" parallel="false">
+			    	
+			    	<!-- Source of the files -->	
+			        <fileset dir="${basedir}/src">
+			    		<include name="**/*.js" />
+			        	<include name="**/*.css" />
+			        </fileset>
+			        <arg line="-jar" />
+			        <arg path="lib/yuicompressor-2.4.8.jar" />
+			        <srcfile />
+			        <arg line="-o"/>
+			    	<mapper refid="to_export_dir_mapper" />
+			        <targetfile />
+			    </apply>
+    		</then>
+    		<else>
+    	        <!-- Copy the unoptimized files over -->
+    	        <copy todir="${export_dir}/${value.build.appname}">
+    	            <fileset dir="${value.src.directory}">
+    	            	<include name="**/*.js" />
+    	            	<include name="**/*.css" />
+    	            </fileset>
+    	        </copy>
+    		</else>
+    	</if>
 
     </target>
         
