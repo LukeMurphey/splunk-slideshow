@@ -296,24 +296,10 @@
     <!-- ================================= 
           target: splunk.bump
          ================================= -->
-    <target name="splunk.bump" depends="splunk.get_push_version" description="Bump Splunk">
-		    	
+    <target name="splunk.bump" depends="splunk.get_push_version,initialize_libraries" description="Bump Splunk">
+		
     	<!-- Increment the value -->
-    	<script language="javascript">
-    		var currentValue = parseInt(project.getProperty("value.deploy.bump"), 10);
-    		
-    		var newBump = currentValue + 1;
-    		
-    		if(isNaN(newBump)){
-    			echo = project.createTask("echo");
-    			echo.setMessage("The loaded push-version is invalid; it will be reset to 100");
-    		    echo.perform();
-    			newBump = 100;
-    		}
-    		
-    		project.setProperty("value.deploy.bump_updated", newBump);
-    	
-    	</script>
+    	<math result="value.deploy.bump_updated" operand1="${value.deploy.bump}" operation="+" operand2="1" datatype="int"/>
     	
     	<!-- Set the current value of bump -->
     	<echo file="${value.deploy.splunk_home}/var/run/splunk/push-version.txt">${value.deploy.bump_updated}</echo>
