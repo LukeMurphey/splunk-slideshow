@@ -62,5 +62,7 @@ Change History
 | 2.2.1   | Added view and information to help explain why some views are not listed                                         |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 2.2.2   | Fixed issue where the bottom of some screens was not black even when the invert colors mode was on               |
-|         | CSS and JS files are now minified to decrease load times                                                          |
+|         | CSS and JS files are now minified to decrease load times                                                         |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.3     | Added controls for switching to the next or previous views                                                       |
 +---------+------------------------------------------------------------------------------------------------------------------+
