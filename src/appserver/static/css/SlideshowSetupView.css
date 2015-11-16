@@ -107,7 +107,7 @@ input[type="checkbox"]{
 	background-color: white;
 	border-radius: 5px;
 	border: 1px solid rgb(158, 158, 158);
-	width: 250px;
+	width: 350px;
 	margin-left: auto;
 	margin-right: auto;
 	padding: 4px;
@@ -118,4 +118,9 @@ input[type="checkbox"]{
   	margin-top: 20px;
   	z-index: 101;
   	padding: 18px;
+  	display: none;
+}
+
+#overlay-controls > button{
+	margin-left: 12px;
 }

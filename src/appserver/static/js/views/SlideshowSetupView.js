@@ -56,7 +56,9 @@ define([
         	"click #stop_show" : "stopShow",
         	"click .predefined-interval" : "setPredefinedInterval",
         	"click #overlay_stop_show": "stopShow",
-        	"click #help_dashboards_list" : "showDashboardsListHelp"
+        	"click #help_dashboards_list" : "showDashboardsListHelp",
+        	"click #overlay_next_view" : "nextView",
+        	"click #overlay_prev_view" : "previousView"
         },
         
         initialize: function() {
@@ -444,6 +446,7 @@ define([
         	// Wire up the handler to show the stop show option
         	setTimeout(function(){
         		
+        		// Handle the mouse moves in order to show the overlay
             	$(this.slideshow_window.document).mousemove(function() {
             		
             		// Don't show the overlay controls within the first few seconds. We get some false mousemove events that occur when the views are swapped out.
@@ -452,7 +455,24 @@ define([
             			this.showOverlayControls();
             		}
             		
-                	}.bind(this));
+                }.bind(this));
+            	
+            	// Handle the keypresses to go to the next view
+            	$(this.slideshow_window.document).keydown(function(e) {
+            		
+            		// Go to the next view
+            		if(this.slideshow_is_running && e.keyCode === 39){
+            			console.info("Got a key-press to go to the next view");
+            			this.goToNextView();
+            		}
+            		
+            		// Go to the previous view
+            		else if(this.slideshow_is_running && e.keyCode === 37){
+            			console.info("Got a key-press to go to the previous view");
+            			this.goToPreviousView();
+            		}
+            		
+                }.bind(this));
         	}.bind(this), 2000);
         	
         },
@@ -598,6 +618,25 @@ define([
          * Go to the next view in the list.
          */
         goToNextView: function(){
+        	this.changeView(true);
+        },
+        
+        /**
+         * Go to the previous view in the list.
+         */
+        goToPreviousView: function(){
+        	this.changeView(false);
+        },
+        
+        /**
+         * Change to a view.
+         */
+        changeView: function(forward){
+        	
+        	// Provide a default argument for forward
+        	if(typeof forward === 'undefined'){
+        			forward = true;
+        	}
         	
         	// Get the view that we are showing
         	var view = null;
@@ -606,13 +645,19 @@ define([
         	if( this.slideshow_view_offset === null ){
         		this.slideshow_view_offset = 0;
         	}
-        	else{
+        	else if(forward){
         		this.slideshow_view_offset++; 
+        	}
+        	else if(!forward){
+        		this.slideshow_view_offset--; 
         	}
         	
         	// If the we went off of the end, then wrap around
         	if( this.slideshow_view_offset >= this.slideshow_views.length ){
         		this.slideshow_view_offset = 0;
+        	}
+        	else if( this.slideshow_view_offset <= 0){
+        		this.slideshow_view_offset = (this.slideshow_views.length - 1);
         	}
 
         	// Get the view
@@ -849,6 +894,22 @@ define([
         	
         	// Show the scrollbars on the main view
         	$("body").css('overflow', 'initial');
+        },
+        
+        /**
+         * Go to the next view
+         */
+        nextView: function(){
+        	this.goToNextView();
+        },
+        
+        /**
+         * Handle key-presses to show the next view (or prior)
+         */
+        keydownOnView: function(e){
+        	if(this.slideshow_is_running){
+        		alert(e.which);
+        	}
         },
         
         /**
