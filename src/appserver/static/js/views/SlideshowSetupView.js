@@ -3,7 +3,7 @@ require.config({
         text: "../app/slideshow/contrib/text",
         bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min",
         store: "../app/slideshow/contrib/store.min",
-        nprogress: "../app/slideshow/contrib/nprogress/nprogress",
+        nprogress: "../app/slideshow/contrib/nprogress/nprogress"
     },
 	shim: {
 	    'store': {
@@ -12,7 +12,7 @@ require.config({
     	'bootstrap_dualist': {
     		deps: ['jquery']
     	},
-	    nprogress: {
+	    'nprogress': {
 	    	exports: 'NProgress',
 	    	deps: ['jquery']
 	    }
@@ -32,6 +32,7 @@ define([
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "nprogress",
+    "purge_frame",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
 ], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
 	
@@ -439,6 +440,12 @@ define([
          */
         wireUpSlideFrameControls: function(){
         	
+        	// Remove existing bindings if necessary (to prevent memory leaks)
+        	if(this.slideshow_window && this.slideshow_window.document){
+        		$(this.slideshow_window.document).unbind();
+        		console.info("Unbinding the handlers for the show frame");
+        	}
+        	
 			// Store a reference to the window
 			var showframe = document.getElementById("showframe");
 			this.slideshow_window = showframe.contentWindow;
@@ -505,6 +512,9 @@ define([
          * Show the frame that will contain the slideshow
          */
         showSlideshowFrame: function(){
+        	
+        	// Remove the existing frame
+        	this.deleteShowFrame();
         	
 			// Make the frame if necessary
 			if($('#showframe').length === 0){
@@ -612,6 +622,30 @@ define([
         	
         	// Inject the css to the head
         	head.appendChild(style);
+        },
+        
+        /**
+         * Delete the show frame.
+         * 
+         * This needs to be done in order to make sure that memory is re-claimed
+         *  
+         * See:
+         *    1) http://lukemurphey.net/issues/1148
+         * 	  2) https://github.com/LukeMurphey/splunk-slideshow/issues/1
+         */
+        deleteShowFrame: function(){
+        	
+        	// Unbind the overlay controls
+        	if(this.slideshow_window && this.slideshow_window.document){
+        		$(this.slideshow_window.document).unbind();
+        	}
+        	
+        	// Purge the frame itself
+        	if($('#showframe').length > 0){
+        		$('#showframe').remove();
+        	}
+        	
+        	this.slideshow_window = null;
         },
         
         /**
@@ -738,6 +772,7 @@ define([
     			// Show the loading frame
     			this.showLoadingFrame();
     			
+    			// Wire up the handlers to show/hide the overlap controls
     			this.wireUpSlideFrameControls();
         	}
         	
@@ -877,9 +912,7 @@ define([
 	        	this.slideshow_window.close();
 	        	this.slideshow_window = null;
 	        	
-	        	if($('#showframe').length > 0){
-	        		$('#showframe').remove();
-	        	}
+	        	this.deleteShowFrame();
         	}
         	
         	// Stop attempts to update the progress bar since the document it is associated with no longer exists
