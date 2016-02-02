@@ -32,7 +32,6 @@ define([
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "nprogress",
-    "purge_frame",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
 ], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
 	
