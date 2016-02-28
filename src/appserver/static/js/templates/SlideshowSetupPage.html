@@ -22,23 +22,39 @@
 Select the views and configure how you want to display the views below.
 When the show is started, the selected pages will be displayed for the amount of time specified automatically.
 
+	<div id="saved_show_control_group" class="control-group">
+		<fieldset>
+			<legend>Saved Shows</legend>
+			<div class="controls inline-controls">
+				<label>Existing saved show</label>
+				<div class="input input-dropdown" id="existing_shows"></div>
+			</div>
+			<div class="controls inline-controls saved-slideshow-controls">
+				<a href="#" id="delete_saved_show" class="btn btn-delete" style="display: inline;">Delete</a>
+				<a href="#" id="new_saved_show" class="btn btn-primary" style="display: inline;">Save as new show</a>
+				<a href="#" id="save_saved_show" class="btn" style="display: inline;">Save changes</a>
+				<a href="#" id="edit_saved_show_title" class="btn" style="display: inline;">Change title</a>
+			</div>
+		</fieldset>
+	</div>
+
 	<div id="views_control_group" class="control-group">
-	<fieldset>
-		<legend>Views to Display</legend>
-	    <select id="views_list" multiple="multiple" name="views_list">
-		<% for (var i = 0; i < available_views.length; i++) { %>
-		   <% if( available_views[i].content.isVisible && (available_views[i].acl.sharing == "global" || available_views[i].acl.sharing == "system") ) { %>
-		       <% if( available_views[i].content.label ) { %>
-		   <option value="<%- available_views[i].name %>" <% if( $.inArray(available_views[i].name, selected_views) >= 0 ){ %>selected<% } %>><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
-		       <% } else { %>
-		   <option value="<%- available_views[i].name %>"><%- available_views[i].name %></option>
-		       <% } %>
-		   <% } %>
-		<% } %>
-		</select>
-		<span class="help-inline"></span>
-		<a id="help_dashboards_list" href="#">Why aren't some dashboards listed here?</a>
-	</fieldset>
+		<fieldset>
+			<legend>Views to Display</legend>
+		    <select id="views_list" multiple="multiple" name="views_list">
+			<% for (var i = 0; i < available_views.length; i++) { %>
+			   <% if( available_views[i].content.isVisible && (available_views[i].acl.sharing == "global" || available_views[i].acl.sharing == "system") ) { %>
+			       <% if( available_views[i].content.label ) { %>
+			   <option value="<%- available_views[i].name %>" <% if( $.inArray(available_views[i].name, selected_views) >= 0 ){ %>selected<% } %>><%- available_views[i].name %> (<%- available_views[i].content.label %>)</option>
+			       <% } else { %>
+			   <option value="<%- available_views[i].name %>"><%- available_views[i].name %></option>
+			       <% } %>
+			   <% } %>
+			<% } %>
+			</select>
+			<span class="help-inline"></span>
+			<a id="help_dashboards_list" href="#">Why aren't some dashboards listed here?</a>
+		</fieldset>
 	</div>
 		<!-- 
 	<h3>Options</h3>

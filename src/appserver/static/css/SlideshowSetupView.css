@@ -124,3 +124,12 @@ input[type="checkbox"]{
 #overlay-controls > button{
 	margin-left: 12px;
 }
+
+.inline-controls{
+	float:left;
+}
+
+.saved-slideshow-controls{
+	padding-top: 25px;
+}
+}

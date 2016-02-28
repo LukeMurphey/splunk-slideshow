@@ -3,7 +3,8 @@ require.config({
         text: "../app/slideshow/contrib/text",
         bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min",
         store: "../app/slideshow/contrib/store.min",
-        nprogress: "../app/slideshow/contrib/nprogress/nprogress"
+        nprogress: "../app/slideshow/contrib/nprogress/nprogress",
+        kvstore: "../app/slideshow/contrib/kvstore"
     },
 	shim: {
 	    'store': {
@@ -24,17 +25,28 @@ define([
     "backbone",
     "splunkjs/mvc",
     "jquery",
+    "collections/SplunkDsBase",
     "splunkjs/mvc/simplesplunkview",
     "splunkjs/mvc/simpleform/input/dropdown",
     "splunkjs/mvc/simpleform/input/text",
     "text!../app/slideshow/js/templates/SlideshowSetupPage.html",
     "store",
+    "kvstore",
     "css!../app/slideshow/css/SlideshowSetupView.css",
     "bootstrap_dualist",
     "nprogress",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
-], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store){
+], function(_, Backbone, mvc, $, SplunkDsBaseCollection, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store, KVStore){
 	
+	var SavedSlideshowModel = KVStore.Model.extend({
+	    collectionName: 'saved_slideshows'
+	});
+	
+	var SavedSlideshowCollection = KVStore.Collection.extend({
+	    collectionName: 'saved_slideshows',
+	    model: SavedSlideshowModel
+	});
+
     // Define the custom view class
     var SlideshowSetupView = SimpleSplunkView.extend({
     	
@@ -58,7 +70,11 @@ define([
         	"click #overlay_stop_show": "stopShow",
         	"click #help_dashboards_list" : "showDashboardsListHelp",
         	"click #overlay_next_view" : "nextView",
-        	"click #overlay_prev_view" : "previousView"
+        	"click #overlay_prev_view" : "previousView",
+        	"click #delete_saved_show" : "deleteSavedShow",
+        	"click #new_saved_show" : "newSavedShow",
+        	"click #save_saved_show" : "editSavedShow",
+        	"click #edit_saved_show_title" : "editSavedShowTitle"
         },
         
         initialize: function() {
@@ -87,6 +103,29 @@ define([
         	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
         	
+        	this.saved_shows_supported = true;
+        	
+        	this.saved_shows_model = new SavedSlideshowCollection();
+        	this.saved_shows_model.on('reset', this.gotSavedShows.bind(this), this);
+        	
+        	// Start the loading of the saved shows
+        	this.saved_shows_model.fetch({
+                success: function() {
+                  console.info("Successfully retrieved the saved shows");
+                },
+                error: function() {
+                  console.error("Unable to fetch the saved slideshows");
+                },
+                complete: function(jqXHR, textStatus){
+                	if( jqXHR.status == 404){
+                		
+                		// We don't support saved shows (no KV support), hide the options
+                		this.hideSavedShowOptions();
+                		
+                		this.saved_shows_supported = false;
+                	}
+                }.bind(this)
+            });
         	
         	this.view_overrides = [
         			{
@@ -129,7 +168,11 @@ define([
         	                    	   'unit' : 's',
         	                    	   'number' : 1
         	                       }
-        	                       ]
+        	                       ];
+        	
+        	// Keep links around to the controls
+        	this.shows_dual_list = null;
+        	this.shows_dropdown_input = null;
         	
         },
         
@@ -139,6 +182,301 @@ define([
         showHelp: function(message_html){
         	$('#help-dialog-text', this.$el).html(message_html);
         	$('#help-dialog', this.$el).modal();
+        },
+        
+        /**
+         * Hide the options for saving and loading shows.
+         */
+        hideSavedShowOptions: function(){
+        	$('#saved_show_control_group', this.$el);
+        },
+        
+        /**
+         * Populate the list of saved shows.
+         */
+        gotSavedShows: function(){
+        	this.refreshSavedShowsDropdown();
+        },
+        
+        /**
+         * Refresh the list of saved shows in the dropdown.
+         */
+        refreshSavedShowsDropdown: function(){
+        	
+        	// Update the dropdown with the saved shows
+        	if(this.shows_dropdown_input){
+        		this.shows_dropdown_input.settings.set("choices", this.getSavedShowsChoices());
+        	}
+        },
+        
+        /**
+         * Get the list of saved shows.
+         */
+        getSavedShowsChoices: function(){
+        	
+        	// Populate the list of saved shows
+        	var choices = [];
+        	
+        	for(var c = 0; c < this.saved_shows_model.models.length; c++){
+        		
+        		// Insert the entry
+        		choices.push( {
+        			'label': this.saved_shows_model.models[c].attributes.name,
+        			'value': this.saved_shows_model.models[c].attributes._key
+        		} );
+        		
+        	}
+        	
+        	return choices;
+        },
+        
+        /**
+         * Get a reference to the model of the selected show.
+         */
+        getSelectedShow: function(){
+        	
+        	var selected_key = this.shows_dropdown_input.val();
+        	
+        	if(selected_key){
+        		return this.saved_shows_model.get(selected_key);
+        	}
+	        else{
+	        	return null;
+	        }
+        },
+        
+        /**
+         * Delete the selected saved show.
+         */
+        deleteSavedShow: function(){
+        	
+        	// Make sure a show was selected
+        	var selected_key = this.shows_dropdown_input.val();
+        	
+        	var saved_show = this.getSelectedShow();
+        	
+        	// Remove the show
+        	if(saved_show !== null){
+        		saved_show.destroy({
+        			success: function(model, response) {
+        			  console.info("Saved show deleted");
+        			  
+        			  // Clear the selection
+        			  this.shows_dropdown_input.val(null);
+        			  this.refreshSavedShowsDropdown();
+        			  
+        			}.bind(this)
+        		});
+        	}
+        	
+        },
+        
+        /**
+         * Create a new saved show.
+         */
+        newSavedShow: function(){
+        	
+        	// Get the title for the show
+        	
+        	// Save the show (and select it once saved)
+        	
+        	this.doSaveNewShow();
+        },
+        
+        /**
+         * Edit the saved show.
+         */
+        editSavedShow: function(){
+        	
+        	// Make sure a show was selected
+        	
+        	// Make the changes
+        	this.doEditShow();
+        	
+        	
+        },
+        
+        /**
+         * Load a saved show.
+         */
+        loadSavedShow: function(key){
+        	
+        	if(typeof key === 'undefined'){
+        		return;
+        	}
+        	
+        	console.info("Loading show with key=" + key);
+        	
+        	var saved_show = null;
+        	var saved_show_name = null;
+        	
+        	for(var c = 0; c < this.saved_shows_model.models.length; c++){
+        		if(this.saved_shows_model.models[c].attributes._key === key){
+        			saved_show = this.saved_shows_model.models[c].attributes.configuration;
+        			saved_show_name = this.saved_shows_model.models[c].attributes.name;
+        		}
+        	}
+        	
+        	if(saved_show !== null){
+        		
+	        	// Load the saved show info the form
+	        	$('[name="delay"]', this.$el).val(saved_show.delay_readable);
+	        	
+	        	if(saved_show.hide_chrome){
+	        		$('[name="hide_chrome"]:first', this.$el).prop("checked", true);
+	        	}
+	        	else{
+	        		$('[name="hide_chrome"]:first', this.$el).prop("checked", false);
+	        	}
+	        	
+	        	if(saved_show.invert_colors){
+	        		$('[name="invert_colors"]:first', this.$el).prop("checked", true);
+	        	}
+	        	else{
+	        		$('[name="invert_colors"]:first', this.$el).prop("checked", false);
+	        	}
+	        	
+	        	// Get a list of the options
+	        	this.makeAllViewsUnselected();
+	        	
+	        	for(var c = 0; c < saved_show.views.length; c++){
+	        		this.makeViewSelected(saved_show.views[c]);
+	        	}
+	        	
+	        	this.shows_dual_list.bootstrapDualListbox('refresh');
+        	}
+        },
+        
+        /**
+         * Make all views unselected.
+         */
+        makeAllViewsUnselected: function(){
+        	$('[name="views_list"] > option').prop("selected", false);
+        },
+        
+        /**
+         * Make the given view selected.
+         */
+        makeViewSelected: function(view_name){
+        	$('[name="views_list"] > option[value="' +  view_name.name + '"]').prop("selected", true);
+        },
+        
+        /**
+         * Save an existing show.
+         */
+        doEditShow: function(){
+        	
+        	var saved_show = this.getSelectedShow();
+
+        	if(saved_show){
+            	saved_show.set({configuration: this.makeSavedShowConfig()});
+            	
+            	saved_show.save();
+            	
+            	this.refreshSavedShowsDropdown();
+        	}
+        },
+        
+        /**
+         * Change the title of the show
+         */
+        editSavedShowTitle: function(){
+        	
+        	var saved_show = this.getSelectedShow();
+        	
+        	if(saved_show){
+        		
+            	var name = prompt("Enter the show name", saved_show.attributes.name);
+            	
+            	if (name != null) {
+	            	saved_show.set({name: name});
+	            	
+	            	saved_show.save();
+	            	
+	            	this.refreshSavedShowsDropdown();
+            	}
+        	}
+        },
+        
+        /**
+         * Save a new show.
+         */
+        doSaveNewShow: function(){
+        	
+        	var name = prompt("Enter the show name", "");
+        	
+            if (name != null) {
+        	
+	        	var saved_show = new SavedSlideshowModel({
+	        		  name: name,
+	        		  configuration: this.makeSavedShowConfig()
+	        	});
+	
+	        	// Save the show and update the list
+	        	saved_show.save().done(function(){
+	        		this.saved_shows_model.push(saved_show);
+	        		this.refreshSavedShowsDropdown();
+	        	}.bind(this))
+	        	
+            }
+        	
+        },
+        
+        /**
+         * Set the status of the saved show controls to be enabled or disabled.
+         */
+        setStatusOfSavedShowControls: function(newValue){
+        	if(newValue){
+        		$('.saved-slideshow-controls > a').removeClass('disabled');
+        	}
+        	else{
+        		$('.saved-slideshow-controls > a').addClass('disabled');
+        	}
+        },
+        
+        /**
+         * Make a config for the saved show.
+         */
+        makeSavedShowConfig: function(){
+        	
+        	// Make sure the settings are valid
+        	if( !this.validate() ){
+        		//Show cannot be started, something doesn't validate
+        		return false;
+        	}
+        	
+        	var saved_show = {};
+        	
+        	// Get the views put into a list
+        	var selected_views = $('[name="views_list"]', this.$el).val();
+        	var views = [];
+        	
+        	for( var c = 0; c < selected_views.length; c++){
+        		
+        		var view_meta = this.getViewForName(selected_views[c]);
+        		
+        		views.push({
+        			'name' : selected_views[c],
+        			'app'  : view_meta.acl.app
+        		})
+        	}
+        	
+        	saved_show.views = views;
+        	
+        	// Get the other parameters
+        	var delay_readable = $('[name="delay"]', this.$el).val();
+        	var delay = this.getSecondsFromReadableDuration( delay_readable );
+        	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
+        	var invert_colors = $('[name="invert_colors"]:first', this.$el).prop("checked");
+        	
+        	// Insert the parameters
+        	saved_show.delay = delay;
+        	saved_show.delay_readable = delay_readable;
+        	saved_show.hide_chrome = hide_chrome;
+        	saved_show.invert_colors = invert_colors;
+        	
+        	// Return the result
+        	return saved_show;
         },
         
         /**
@@ -267,45 +605,27 @@ define([
          */
         startShow: function(){
         	
-        	// Make sure the settings are valid
-        	if( !this.validate() ){
-        		//Show cannot be started, something doesn't validate
-        		return false;
+        	// Get a representation of the saved show
+        	var saved_show = this.makeSavedShowConfig();
+        	
+        	if(saved_show === null){
+        		// Stop, the show didn't validate
         	}
-        	
-        	// Get the views put into a list
-        	var selected_views = $('[name="views_list"]', this.$el).val();
-        	var views = [];
-        	
-        	for( var c = 0; c < selected_views.length; c++){
-        		
-        		var view_meta = this.getViewForName(selected_views[c]);
-        		
-        		views.push({
-        			'name' : selected_views[c],
-        			'app'  : view_meta.acl.app
-        		})
-        	}
-        	
-        	var delay_readable = $('[name="delay"]', this.$el).val();
-        	var delay = this.getSecondsFromReadableDuration( delay_readable );
-        	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
-        	var invert_colors = $('[name="invert_colors"]:first', this.$el).prop("checked");
         	
         	// Save the settings
-        	store.set('views', views );
-        	store.set('view_delay', delay);
-        	store.set('view_delay_readable', delay_readable);
-        	store.set('hide_chrome', hide_chrome);
-        	store.set('invert_colors', invert_colors);
+        	store.set('views', saved_show.views );
+        	store.set('view_delay', saved_show.delay);
+        	store.set('view_delay_readable', saved_show.delay_readable);
+        	store.set('hide_chrome', saved_show.hide_chrome);
+        	store.set('invert_colors', saved_show.invert_colors);
         	
         	// Initialize the slideshow parameters so that we can run the show
         	this.slideshow_window = null;
         	this.slideshow_view_offset = 0;
-        	this.slideshow_views = views;
-        	this.slideshow_delay = delay;
-        	this.slideshow_hide_chrome = hide_chrome;
-        	this.slideshow_invert_colors = invert_colors;
+        	this.slideshow_views = saved_show.views;
+        	this.slideshow_delay = saved_show.delay;
+        	this.slideshow_hide_chrome = saved_show.hide_chrome;
+        	this.slideshow_invert_colors = saved_show.invert_colors;
         	
         	// Note that the show has begun
         	this.slideshow_is_running = true;
@@ -1148,11 +1468,25 @@ define([
         	}) );
         	
         	// Convert the list into a nice dual-list
-        	$('[name="views_list"]').bootstrapDualListbox( { 
+        	this.shows_dual_list = $('[name="views_list"]').bootstrapDualListbox( { 
         		bootstrap2Compatible : true,
         		nonselectedlistlabel: 'Available',
         	    selectedlistlabel: 'Included'
         	});
+        	
+        	// Make the saved shows selection drop-down
+            this.shows_dropdown_input = new DropdownInput({
+                "id": "existing_shows",
+                "selectFirstChoice": false,
+                "showClearButton": true,
+                "el": $('#existing_shows', this.$el),
+                "choices": this.getSavedShowsChoices()
+            }, {tokens: true}).render();
+            
+            this.shows_dropdown_input.on("change", function(newValue) {
+            	this.loadSavedShow(newValue);
+            	this.setStatusOfSavedShowControls(newValue);
+            }.bind(this));
         }
     });
     
