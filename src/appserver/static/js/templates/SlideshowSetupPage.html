@@ -22,7 +22,7 @@
 Select the views and configure how you want to display the views below.
 When the show is started, the selected pages will be displayed for the amount of time specified automatically.
 
-	<div id="saved_show_control_group" class="control-group">
+	<div id="saved_show_control_group" class="control-group <% if(!saved_shows_supported) { %>hide<% } %>">
 		<fieldset>
 			<legend>Saved Shows</legend>
 			<div class="controls inline-controls">

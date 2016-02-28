@@ -1,6 +1,7 @@
 require.config({
     paths: {
         text: "../app/slideshow/contrib/text",
+        optional: "../app/slideshow/contrib/optional",
         bootstrap_dualist: "../app/slideshow/contrib/bootstrap-duallist/jquery.bootstrap-duallistbox.min",
         store: "../app/slideshow/contrib/store.min",
         nprogress: "../app/slideshow/contrib/nprogress/nprogress",
@@ -16,7 +17,13 @@ require.config({
 	    'nprogress': {
 	    	exports: 'NProgress',
 	    	deps: ['jquery']
-	    }
+	    },
+	    'kvstore': {
+	    	deps: ['jquery', 'backbone', 'underscore']
+	    },
+    	'bootstrap_dualist': {
+    		deps: ['jquery']
+    	}
 	}
 });
 
@@ -38,14 +45,16 @@ define([
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
 ], function(_, Backbone, mvc, $, SplunkDsBaseCollection, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store, KVStore){
 	
-	var SavedSlideshowModel = KVStore.Model.extend({
-	    collectionName: 'saved_slideshows'
-	});
-	
-	var SavedSlideshowCollection = KVStore.Collection.extend({
-	    collectionName: 'saved_slideshows',
-	    model: SavedSlideshowModel
-	});
+	if(KVStore && KVStore.Model){
+		var SavedSlideshowModel = KVStore.Model.extend({
+		    collectionName: 'saved_slideshows'
+		});
+		
+		var SavedSlideshowCollection = KVStore.Collection.extend({
+		    collectionName: 'saved_slideshows',
+		    model: SavedSlideshowModel
+		});
+	}
 
     // Define the custom view class
     var SlideshowSetupView = SimpleSplunkView.extend({
@@ -103,29 +112,37 @@ define([
         	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
         	
-        	this.saved_shows_supported = true;
+        	this.saved_shows_supported = false;
         	
-        	this.saved_shows_model = new SavedSlideshowCollection();
-        	this.saved_shows_model.on('reset', this.gotSavedShows.bind(this), this);
-        	
-        	// Start the loading of the saved shows
-        	this.saved_shows_model.fetch({
-                success: function() {
-                  console.info("Successfully retrieved the saved shows");
-                },
-                error: function() {
-                  console.error("Unable to fetch the saved slideshows");
-                },
-                complete: function(jqXHR, textStatus){
-                	if( jqXHR.status == 404){
-                		
-                		// We don't support saved shows (no KV support), hide the options
-                		this.hideSavedShowOptions();
-                		
-                		this.saved_shows_supported = false;
-                	}
-                }.bind(this)
-            });
+        	if(KVStore && KVStore.Model){
+        		this.saved_shows_supported = true;
+        		
+	        	this.saved_shows_model = new SavedSlideshowCollection();
+	        	this.saved_shows_model.on('reset', this.gotSavedShows.bind(this), this);
+	        	
+	        	// Start the loading of the saved shows
+	        	this.saved_shows_model.fetch({
+	                success: function() {
+	                  console.info("Successfully retrieved the saved shows");
+	                },
+	                error: function() {
+	                  console.error("Unable to fetch the saved slideshows");
+	                  this.saved_shows_supported = false;
+	                  this.hideSavedShowOptions();
+	                }.bind(this),
+	                complete: function(jqXHR, textStatus){
+	                	if( jqXHR.status == 404){
+	                		
+	                		// We don't support saved shows (no KV support), hide the options
+	                		this.hideSavedShowOptions();
+	                		this.saved_shows_supported = false;
+	                	}
+	                }.bind(this)
+	            });
+        	}
+        	else{
+        		this.hideSavedShowOptions();
+        	}
         	
         	this.view_overrides = [
         			{
@@ -188,7 +205,7 @@ define([
          * Hide the options for saving and loading shows.
          */
         hideSavedShowOptions: function(){
-        	$('#saved_show_control_group', this.$el);
+        	$('#saved_show_control_group', this.$el).hide();
         },
         
         /**
@@ -1462,6 +1479,7 @@ define([
         		available_views: this.filterUnsupportedViews(this.available_views),
         		delay: delay_readable,
         		selected_views: selected_views_names,
+        		saved_shows_supported: this.saved_shows_supported,
         		load_app_resources: load_app_resources,
         		hide_chrome: hide_chrome,
         		invert_colors: invert_colors
@@ -1474,19 +1492,23 @@ define([
         	    selectedlistlabel: 'Included'
         	});
         	
-        	// Make the saved shows selection drop-down
-            this.shows_dropdown_input = new DropdownInput({
-                "id": "existing_shows",
-                "selectFirstChoice": false,
-                "showClearButton": true,
-                "el": $('#existing_shows', this.$el),
-                "choices": this.getSavedShowsChoices()
-            }, {tokens: true}).render();
+        	if(this.saved_shows_supported){
+        	
+	        	// Make the saved shows selection drop-down
+	            this.shows_dropdown_input = new DropdownInput({
+	                "id": "existing_shows",
+	                "selectFirstChoice": false,
+	                "showClearButton": true,
+	                "el": $('#existing_shows', this.$el),
+	                "choices": this.getSavedShowsChoices()
+	            }, {tokens: true}).render();
+	            
+	            this.shows_dropdown_input.on("change", function(newValue) {
+	            	this.loadSavedShow(newValue);
+	            	this.setStatusOfSavedShowControls(newValue);
+	            }.bind(this));
             
-            this.shows_dropdown_input.on("change", function(newValue) {
-            	this.loadSavedShow(newValue);
-            	this.setStatusOfSavedShowControls(newValue);
-            }.bind(this));
+        	}
         }
     });
     
