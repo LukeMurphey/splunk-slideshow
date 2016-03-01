@@ -132,4 +132,15 @@ input[type="checkbox"]{
 .saved-slideshow-controls{
 	padding-top: 25px;
 }
+
+#link{
+    width: 370px;
+}
+
+#autoplay-link{
+	width: 370px;
+}
+
+#show_links{
+	margin-left: 8px;
 }

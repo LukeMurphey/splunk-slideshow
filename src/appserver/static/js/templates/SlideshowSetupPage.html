@@ -11,6 +11,46 @@
   </div>
 </div>
 
+<div id="link-dialog" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Link</h3>
+  </div>
+  <div class="modal-body">
+    <p>
+    
+    	Copy the link that you want to share.
+    	
+		<div>
+			Link that will auto-play the show when opened:
+			<p>
+				<div class="input-prepend">
+				  <span class="add-on">
+				  	<i class="icon-bookmark"></i>
+				  </span>
+				  <input class="span2" id="autoplay-link" type="text">
+				</div>
+			</p>
+    	</div>
+    	
+    	<div>
+    		Link that doesn't auto-play:
+    		<p>
+			    <div class="input-prepend">
+				  <span class="add-on">
+				  	<i class="icon-bookmark"></i>
+				  </span>
+				  <input class="span2" id="link" type="text">
+				</div>
+			</p>
+		</div>
+    </p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">Close</a>
+  </div>
+</div>
+
 <div id="overlay-controls">
 	<div class="pull-left">Slideshow is running</div>
 		
@@ -34,6 +74,7 @@ When the show is started, the selected pages will be displayed for the amount of
 				<a href="#" id="new_saved_show" class="btn btn-primary" style="display: inline;">Save as new show</a>
 				<a href="#" id="save_saved_show" class="btn" style="display: inline;">Save changes</a>
 				<a href="#" id="edit_saved_show_title" class="btn" style="display: inline;">Change title</a>
+				<a href="#" id="show_links" style="display: inline;">Share link</a>
 			</div>
 		</fieldset>
 	</div>

@@ -83,7 +83,10 @@ define([
         	"click #delete_saved_show" : "deleteSavedShow",
         	"click #new_saved_show" : "newSavedShow",
         	"click #save_saved_show" : "editSavedShow",
-        	"click #edit_saved_show_title" : "editSavedShowTitle"
+        	"click #edit_saved_show_title" : "editSavedShowTitle",
+        	"click #show_links" : "showShareLinks",
+        	"click #link" : "selectLink",
+        	"click #autoplay-link" : "selectAutoplayLink",
         },
         
         initialize: function() {
@@ -444,10 +447,12 @@ define([
          */
         setStatusOfSavedShowControls: function(newValue){
         	if(newValue){
-        		$('.saved-slideshow-controls > a').removeClass('disabled');
+        		$('.saved-slideshow-controls > a', this.$el).removeClass('disabled');
+        		$('#show_links', this.$el).show();
         	}
         	else{
         		$('.saved-slideshow-controls > a').addClass('disabled');
+        		$('#show_links', this.$el).hide();
         	}
         },
         
@@ -1455,6 +1460,43 @@ define([
         },
         
         /**
+         * Update the URL so that it points to the show.
+         */
+        updateURL: function(show_id){
+        	if(show_id){
+        		history.pushState({'show' : show_id}, "", "?show=" + show_id);
+        	}
+        	else{
+        		history.pushState({'show' : show_id}, "", "?show=");
+        	}
+        },
+        
+        /**
+         * Select the link.
+         */
+        selectLink: function(){
+        	$('#link', this.$el).select();
+        },
+        
+        /**
+         * Select the auto-play link.
+         */
+        selectAutoplayLink: function(){
+        	$('#autoplay-link', this.$el).select();
+        },
+        
+        /**
+         * Show a dialog for sharing a link.
+         */
+        showShareLinks: function(){
+        	
+        	$('#link', this.$el).val(document.location.href);
+        	$('#autoplay-link', this.$el).val(document.location.href + "&autoplay=1");
+        	
+        	$('#link-dialog', this.$el).modal();
+        },
+        
+        /**
          * Render the page after all of the information is ready.
          */
         _render: function(){
@@ -1500,12 +1542,23 @@ define([
 	                "selectFirstChoice": false,
 	                "showClearButton": true,
 	                "el": $('#existing_shows', this.$el),
-	                "choices": this.getSavedShowsChoices()
+	                "choices": this.getSavedShowsChoices(),
+	                "valueField": "show",
+	                "value": "$show$"
 	            }, {tokens: true}).render();
 	            
 	            this.shows_dropdown_input.on("change", function(newValue) {
 	            	this.loadSavedShow(newValue);
 	            	this.setStatusOfSavedShowControls(newValue);
+	            	
+		            // Auto-run the show if necessary
+		            if(window.location.search.indexOf("autoplay") > -1 && newValue){
+		            	this.startShow();
+		            }
+		            
+		            this.updateURL(newValue);
+		            
+	            	
 	            }.bind(this));
             
         	}
