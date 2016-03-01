@@ -144,3 +144,12 @@ input[type="checkbox"]{
 #show_links{
 	margin-left: 8px;
 }
+
+#message_outer_holder{
+	display: inline-block;
+}
+
+#message_holder > .alert{
+	margin-bottom: 0px;
+	margin-top: 12px;
+}

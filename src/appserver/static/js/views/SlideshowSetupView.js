@@ -280,6 +280,7 @@ define([
         		saved_show.destroy({
         			success: function(model, response) {
         			  console.info("Saved show deleted");
+        			  this.showMessage("Show successfully deleted");
         			  
         			  // Clear the selection
         			  this.shows_dropdown_input.val(null);
@@ -394,6 +395,7 @@ define([
             	saved_show.save();
             	
             	this.refreshSavedShowsDropdown();
+            	this.showMessage("Show successfully saved");
         	}
         },
         
@@ -414,6 +416,7 @@ define([
 	            	saved_show.save();
 	            	
 	            	this.refreshSavedShowsDropdown();
+	            	this.showMessage("Title successfully changed");
             	}
         	}
         },
@@ -436,6 +439,7 @@ define([
 	        	saved_show.save().done(function(){
 	        		this.saved_shows_model.push(saved_show);
 	        		this.refreshSavedShowsDropdown();
+	        		this.showMessage("Show successfully saved");
 	        	}.bind(this))
 	        	
             }
@@ -565,6 +569,21 @@ define([
         	// No entry found, just convert it to seconds
         	return seconds.toString() + "s";
         	
+        },
+        
+        /**
+         * Show the given message.
+         */
+        showMessage: function(message){
+        	$('#message_holder', this.$el).show();
+        	$('#message', this.$el).text(message);
+        },
+        
+        /**
+         * Hide the message.
+         */
+        hideMessage: function(message){
+        	$('#message_holder', this.$el).hide();
         },
         
         /**
