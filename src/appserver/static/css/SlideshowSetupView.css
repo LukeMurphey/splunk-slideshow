@@ -133,12 +133,9 @@ input[type="checkbox"]{
 	padding-top: 25px;
 }
 
-#link{
-    width: 370px;
-}
-
-#autoplay-link{
+#link, #autoplay-link{
 	width: 370px;
+	background-color: white;
 }
 
 #show_links{
