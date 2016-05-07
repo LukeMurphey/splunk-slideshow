@@ -297,10 +297,13 @@ define([
          */
         newSavedShow: function(){
         	
-        	// Get the title for the show
+        	// Make sure the settings are valid
+        	if( !this.validate() ){
+        		//Show cannot be started, something doesn't validate
+        		return false;
+        	}
         	
         	// Save the show (and select it once saved)
-        	
         	this.doSaveNewShow();
         },
         
@@ -360,8 +363,10 @@ define([
 	        	// Get a list of the options
 	        	this.makeAllViewsUnselected();
 	        	
-	        	for(var c = 0; c < saved_show.views.length; c++){
-	        		this.makeViewSelected(saved_show.views[c]);
+	        	if(saved_show.views){
+		        	for(var c = 0; c < saved_show.views.length; c++){
+		        		this.makeViewSelected(saved_show.views[c]);
+		        	}
 	        	}
 	        	
 	        	this.shows_dual_list.bootstrapDualListbox('refresh');
@@ -451,11 +456,11 @@ define([
          */
         setStatusOfSavedShowControls: function(newValue){
         	if(newValue){
-        		$('.saved-slideshow-controls > a', this.$el).removeClass('disabled');
+        		$('.saved-slideshow-controls > a:not(#new_saved_show)', this.$el).removeClass('disabled');
         		$('#show_links', this.$el).show();
         	}
         	else{
-        		$('.saved-slideshow-controls > a').addClass('disabled');
+        		$('.saved-slideshow-controls > a:not(#new_saved_show)', this.$el).addClass('disabled');
         		$('#show_links', this.$el).hide();
         	}
         },
