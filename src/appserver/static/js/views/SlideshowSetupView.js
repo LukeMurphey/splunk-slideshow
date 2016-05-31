@@ -1024,6 +1024,7 @@ define([
          * Go to the previous view in the list.
          */
         goToPreviousView: function(){
+        	alert
         	this.changeView(false);
         },
         
@@ -1299,6 +1300,13 @@ define([
          */
         nextView: function(){
         	this.goToNextView();
+        },
+        
+        /**
+         * Go to the previous view
+         */
+        previousView: function(){
+        	this.goToPreviousView();
         },
         
         /**
