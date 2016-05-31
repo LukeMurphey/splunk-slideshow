@@ -1024,7 +1024,6 @@ define([
          * Go to the previous view in the list.
          */
         goToPreviousView: function(){
-        	alert
         	this.changeView(false);
         },
         
@@ -1056,7 +1055,7 @@ define([
         	if( this.slideshow_view_offset >= this.slideshow_views.length ){
         		this.slideshow_view_offset = 0;
         	}
-        	else if( this.slideshow_view_offset <= 0){
+        	else if( this.slideshow_view_offset < 0){
         		this.slideshow_view_offset = (this.slideshow_views.length - 1);
         	}
 
