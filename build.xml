@@ -150,7 +150,7 @@
 			        	<include name="**/*.css" />
 			        </fileset>
 			        <arg line="-jar" />
-			        <arg path="lib/yuicompressor-2.4.8.jar" />
+			        <arg path="lib/yuicompressor-2.4.7.jar" />
 			        <srcfile />
 			        <arg line="-o"/>
 			    	<mapper refid="to_export_dir_mapper" />
