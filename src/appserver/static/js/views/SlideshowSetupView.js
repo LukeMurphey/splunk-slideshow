@@ -1055,7 +1055,7 @@ define([
         	if( this.slideshow_view_offset >= this.slideshow_views.length ){
         		this.slideshow_view_offset = 0;
         	}
-        	else if( this.slideshow_view_offset <= 0){
+        	else if( this.slideshow_view_offset < 0){
         		this.slideshow_view_offset = (this.slideshow_views.length - 1);
         	}
 
@@ -1299,6 +1299,13 @@ define([
          */
         nextView: function(){
         	this.goToNextView();
+        },
+        
+        /**
+         * Go to the previous view
+         */
+        previousView: function(){
+        	this.goToPreviousView();
         },
         
         /**
