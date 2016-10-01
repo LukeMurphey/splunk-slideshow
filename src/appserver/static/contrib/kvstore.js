@@ -1,7 +1,7 @@
 /**
  * @file KVStore library.
  */
-define(function(require, exports, module) {
+define(['require', 'jquery', 'underscore', 'backbone', 'splunkjs/mvc/utils', 'util/splunkd_utils'], function(require, exports, module) {
 'use strict';
 
 var $ = require('jquery');
