@@ -73,4 +73,7 @@ Change History
 | 2.4.1   | Fixing error where the "save new show" button was disabled preventing users from making a new show               |
 |---------|------------------------------------------------------------------------------------------------------------------|
 | 2.4.2   | Fixing back button that failed to work                                                                           |
+|---------|------------------------------------------------------------------------------------------------------------------|
+| 2.4.2   | Making the app work on Splunk 6.5                                                                                |
+|         | Updating icon to work with newer version of Splunk-base                                                          |
 +---------+------------------------------------------------------------------------------------------------------------------+
