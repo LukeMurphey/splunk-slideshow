@@ -1,3 +1,28 @@
+/*
+ * 
+ * ___________________________________________
+ * How shows execute
+ * 
+ * Below is a list of the functions that are executed in order to run a show:
+ * 
+ *     startShow(): begins the process of executing a show
+ *        |--- makeSavedShowConfig(): gets a config for executing the show
+ *        |--- goToNextView(): gets the first page
+ *               |--- changeView(): determines which view to show based on the contents of this.slideshow_views
+ *               |--- makeViewURL(): makes the URL for the view to display
+ *        |--- executeSlideshowCycle(): starts the slideshow cycle
+ *     
+ *     
+ * ___________________________________________
+ * How shows are loaded from the KV store   
+ *    
+ * Shows are loaded via the function loadSavedShow(). This function populates the UI. The UI is then used to make the show config when the show is started.
+ * 
+ * See the following for a description of the KV store collection schema: https://lukemurphey.net/projects/splunk-slideshow/wiki/Collection_Schema
+ * 
+ */
+
+
 require.config({
     paths: {
         text: "../app/slideshow/contrib/text",
@@ -66,7 +91,8 @@ define([
          */
         defaults: {
         	'interval': 500,
-        	'use_iframe': true
+        	'use_iframe': true,
+        	'custom_view_prefix': 'custom: '
         },
         
         /**
@@ -87,6 +113,7 @@ define([
         	"click #show_links" : "showShareLinks",
         	"click #link" : "selectLink",
         	"click #autoplay-link" : "selectAutoplayLink",
+        	"click #add_custom_url" : "addCustomURL"
         },
         
         initialize: function() {
@@ -96,6 +123,7 @@ define([
         	
         	this.interval = this.options.interval;
         	this.use_iframe = this.options.use_iframe;
+        	this.custom_view_prefix = this.options.custom_view_prefix;
         	
         	this.available_views = null;
         	this.available_apps = null;
@@ -116,6 +144,7 @@ define([
         	this.ready_state_check_interval = null;
         	
         	this.saved_shows_supported = false;
+        	this.custom_urls = [];
         	
         	if(KVStore && KVStore.Model){
         		this.saved_shows_supported = true;
@@ -209,6 +238,67 @@ define([
          */
         hideSavedShowOptions: function(){
         	$('#saved_show_control_group', this.$el).hide();
+        },
+        
+        /**
+         * Add a custom URL to the show.
+         */
+        addCustomURL: function(){
+        	
+        	var url = prompt("Enter a Splunk URL to add to the show", "");
+        	
+        	// Stop if the user pressed cancel
+        	if(url === null){
+        		return;
+        	}
+        	
+        	// Verify that the URL is valid
+        	// TODO
+        	
+        	// Add the URL to the list
+        	this.loadCustomURL(url, true);
+        },
+        
+        /**
+         * Generate the name of a custom URL.
+         */
+        generateCustomURLName: function(url){
+        	return this.custom_view_prefix + url;
+        },
+        
+        /**
+         * Load the given URL in the show.
+         */
+        loadCustomURL: function(url, makeSelected, refresh){
+        	
+        	if(typeof makeSelected === 'undefined'){
+        		var makeSelected = true;
+        	}
+        	
+        	if(typeof refresh === 'undefined'){
+        		var refresh = true;
+        	}
+        	
+        	// Add the URL to the list
+        	var name = this.generateCustomURLName(url);
+        	this.custom_urls.push(url);
+        	
+        	// Make the parameters for the options element
+        	var parameters = {
+        			value:url,
+        			text:name
+        	}
+        	
+        	// Determine if the option should be selected
+	        if(makeSelected){
+	        	parameters['selected'] = 'selected'
+	    	}
+        	
+        	$('#views_list').append($('<option>', parameters));
+        	
+        	if(refresh){
+        		this.shows_dual_list.bootstrapDualListbox('refresh');
+        	}
         },
         
         /**
@@ -313,11 +403,10 @@ define([
         editSavedShow: function(){
         	
         	// Make sure a show was selected
+        	// TODO
         	
         	// Make the changes
         	this.doEditShow();
-        	
-        	
         },
         
         /**
@@ -365,7 +454,26 @@ define([
 	        	
 	        	if(saved_show.views){
 		        	for(var c = 0; c < saved_show.views.length; c++){
-		        		this.makeViewSelected(saved_show.views[c]);
+		        		
+		        		// Handle the custom URL
+		        		if(saved_show.views[c].url !== undefined){
+		        			
+		        			// Make sure the URL is in the list of custom URLs and add it
+		        			if($.inArray(saved_show.views[c].url, this.custom_urls) < 0){
+			        			this.loadCustomURL(saved_show.views[c].url, true, false);
+		        			}
+		        			
+		        			// Otherwise, select it
+		        			else{
+		        				this.makeCustomURLSelected(saved_show.views[c].url);
+		        			}
+		        		}
+		        		
+		        		// Handle a normal Splunk view
+		        		else{
+			        		// Handle a Splunk view
+			        		this.makeViewSelected(saved_show.views[c]);
+		        		}
 		        	}
 	        	}
 	        	
@@ -385,6 +493,13 @@ define([
          */
         makeViewSelected: function(view_name){
         	$('[name="views_list"] > option[value="' +  view_name.name + '"]').prop("selected", true);
+        },
+        
+        /**
+         * Make the given custom URL selected.
+         */
+        makeCustomURLSelected: function(url){
+        	$('[name="views_list"] > option[value="' + url + '"]').prop("selected", true);
         },
         
         /**
@@ -484,12 +599,29 @@ define([
         	
         	for( var c = 0; c < selected_views.length; c++){
         		
-        		var view_meta = this.getViewForName(selected_views[c]);
+        		// See if this is a custom view
+        		if($.inArray(selected_views[c], this.custom_urls) > -1){
+        			
+        			var custom_url = this.custom_urls[selected_views[c]];
+        			
+        			views.push({
+	        			'url' : selected_views[c]
+	        		});
+        		}
         		
-        		views.push({
-        			'name' : selected_views[c],
-        			'app'  : view_meta.acl.app
-        		})
+        		// Handle other views
+        		else{
+	        		// Get the view information
+	        		var view_meta = this.getViewForName(selected_views[c]);
+	        		
+	        		// Add the view if it was found
+	        		if(view_meta !== undefined){
+		        		views.push({
+		        			'name' : selected_views[c],
+		        			'app'  : view_meta.acl.app
+		        		});
+	        		}
+        		}
         	}
         	
         	saved_show.views = views;
@@ -711,9 +843,14 @@ define([
         /**
          * Make the URL to forward the user to.
          */
-        makeViewURL: function(view, app, hide_controls){
+        makeViewURL: function(view_meta, app, hide_controls){
         	
-        	var app_to_use = app;
+        	var view = view_meta.name || view_meta.url;
+        	var app_to_use = null;
+        	
+        	if(view_meta.app !== undefined){
+        		app_to_use = view_meta.app;
+        	}
         	
         	// See if an app override exists for this app
         	for(var c = 0; c < this.view_overrides.length; c++){
@@ -754,9 +891,23 @@ define([
         	}
         	
         	// Make the URL and return it
-        	var url = "../" + app_to_use + "/" + view;
+        	var url;
+        	var is_absolute_url = false;
         	
-        	if(hide_controls){
+        	if(view.startsWith("https://") || view.startsWith("http://")){
+        		is_absolute_url = true;
+        		url = view;
+        	}
+        	else if(app_to_use !== null){
+        		url = "../" + app_to_use + "/" + view;
+        	}
+        	else{
+        		url = Splunk.util.make_full_url(view);
+        		
+        	}
+        	
+        	// TODO Only add the hide controls options if no options already exist
+        	if(is_absolute_url && hide_controls){
         		url = url + "?hideEdit=true&hideTitle=true&hideSplunkBar=true&hideAppBar=true&hideFooter=true&targetTop=true";
         	}
         	
@@ -805,10 +956,15 @@ define([
          */
         wireUpSlideFrameControls: function(){
         	
-        	// Remove existing bindings if necessary (to prevent memory leaks)
-        	if(this.slideshow_window && this.slideshow_window.document){
-        		$(this.slideshow_window.document).unbind();
-        		console.info("Unbinding the handlers for the show frame");
+        	try{
+	        	// Remove existing bindings if necessary (to prevent memory leaks)
+	        	if(this.slideshow_window && this.slideshow_window.document){
+	        		$(this.slideshow_window.document).unbind();
+	        		console.info("Unbinding the handlers for the show frame");
+	        	}
+        	}
+        	catch(DOMException){
+        		return;
         	}
         	
 			// Store a reference to the window
@@ -818,33 +974,41 @@ define([
         	// Wire up the handler to show the stop show option
         	setTimeout(function(){
         		
-        		// Handle the mouse moves in order to show the overlay
-            	$(this.slideshow_window.document).mousemove(function() {
-            		
-            		// Don't show the overlay controls within the first few seconds. We get some false mousemove events that occur when the views are swapped out.
-            		if( this.getSecondsReady() > 3 ){
-            			console.info("Mouse move detected; showing overlay controls");
-            			this.showOverlayControls();
-            		}
-            		
-                }.bind(this));
+        		try{
+        		
+	        		// Handle the mouse moves in order to show the overlay
+	            	$(this.slideshow_window.document).mousemove(function() {
+	            		
+	            		// Don't show the overlay controls within the first few seconds. We get some false mousemove events that occur when the views are swapped out.
+	            		if( this.getSecondsReady() > 3 ){
+	            			console.info("Mouse move detected; showing overlay controls");
+	            			this.showOverlayControls();
+	            		}
+	            		
+	                }.bind(this));
+	            	
+	            	// Handle the keypresses to go to the next view
+	            	$(this.slideshow_window.document).keydown(function(e) {
+	            		
+	            		// Go to the next view
+	            		if(this.slideshow_is_running && e.keyCode === 39){
+	            			console.info("Got a key-press to go to the next view");
+	            			this.goToNextView();
+	            		}
+	            		
+	            		// Go to the previous view
+	            		else if(this.slideshow_is_running && e.keyCode === 37){
+	            			console.info("Got a key-press to go to the previous view");
+	            			this.goToPreviousView();
+	            		}
+	            		
+	                }.bind(this));
             	
-            	// Handle the keypresses to go to the next view
-            	$(this.slideshow_window.document).keydown(function(e) {
-            		
-            		// Go to the next view
-            		if(this.slideshow_is_running && e.keyCode === 39){
-            			console.info("Got a key-press to go to the next view");
-            			this.goToNextView();
-            		}
-            		
-            		// Go to the previous view
-            		else if(this.slideshow_is_running && e.keyCode === 37){
-            			console.info("Got a key-press to go to the previous view");
-            			this.goToPreviousView();
-            		}
-            		
-                }.bind(this));
+        		}
+            	catch (DOMException){
+            		// The browser blocked this because the page in the show is likel
+            	}
+            	
         	}.bind(this), 2000);
         	
         },
@@ -1062,7 +1226,15 @@ define([
         	// Get the view
         	view = this.slideshow_views[this.slideshow_view_offset];
         	
-        	console.info("Changing to next view: " + view.name);
+        	if(view.hasOwnProperty("name")){
+        		console.info("Changing to view: " + view.name);
+        	}
+        	else if(view.hasOwnProperty("url")){
+        		console.info("Changing to URL: " + view.url);
+        	}
+        	else{
+        		console.warn("View lacks a name and a url attribute");
+        	}
         	
         	// Clear the existing interval
         	if(this.ready_state_check_interval){
@@ -1075,7 +1247,7 @@ define([
         		
         		// Make the window ...
         		if(!this.use_iframe){
-        			this.slideshow_window = window.open(this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome), "_blank");
+        			this.slideshow_window = window.open(this.makeViewURL(view, this.slideshow_hide_chrome), "_blank");
         		}
         		
         		// ... or make the iframe
@@ -1088,7 +1260,7 @@ define([
         			this.showLoadingFrame();
         			
         			// Go to the first view
-        			this.slideshow_window.location = this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome);
+        			this.slideshow_window.location = this.makeViewURL(view, this.slideshow_hide_chrome);
         		}
         		
         		// Stop if the window could not be opened
@@ -1103,19 +1275,25 @@ define([
 	        		
         			setTimeout(function () {
         				
-        				// Stop if the window was closed
-        				if(!this.isSlideshowWindowDefined()){
-        					return;
-        				}
+        				try{
         				
-	        		    if(this.slideshow_window.innerHeight <= 0){
-	        		    	console.warn("Slideshow popup window has an inner height of zero; this is likely due to a popup blocker");
-	        		    	this.showPopupWasBlockedDialog();
-	        		    	this.stopShow();
-	        		    }
-	        		    else{
-	        		    	console.info("Popup window was created successfully (was not popup blocked)");
-	        		    }
+	        				// Stop if the window was closed
+	        				if(!this.isSlideshowWindowDefined()){
+	        					return;
+	        				}
+	        				
+		        		    if(this.slideshow_window.innerHeight <= 0){
+		        		    	console.warn("Slideshow popup window has an inner height of zero; this is likely due to a popup blocker");
+		        		    	this.showPopupWasBlockedDialog();
+		        		    	this.stopShow();
+		        		    }
+		        		    else{
+		        		    	console.info("Popup window was created successfully (was not popup blocked)");
+		        		    }
+	        		    
+        				} catch (DOMException){
+        					
+        				}
 	        		}.bind(this), 3000);
         			
         		}
@@ -1132,7 +1310,7 @@ define([
         		}
         		
         		// Change to the new view
-        		this.slideshow_window.location = this.makeViewURL(view.name, view.app, this.slideshow_hide_chrome);
+        		this.slideshow_window.location = this.makeViewURL(view, this.slideshow_hide_chrome);
         		
     			// Show the loading frame
     			this.showLoadingFrame();
@@ -1144,56 +1322,66 @@ define([
         	// Load the stylesheets and progress indicator as necessary when the page gets ready enough
         	this.ready_state_check_interval = setInterval(function() {
         		
-        		// Stop if the window is closed or null
-        		if(!this.isSlideshowWindowDefined() || !this.slideshow_is_running){
+        		try {
+	        		// Stop if the window is closed or null
+	        		if(!this.isSlideshowWindowDefined() || !this.slideshow_is_running){
+	        			clearInterval(this.ready_state_check_interval);
+	        			return;
+	        		}
+	        		
+	        		// See if the document is ready and update it if it is
+	        		if( (this.slideshow_window.document.readyState === 'loaded'
+	        			|| this.slideshow_window.document.readyState === 'interactive'
+	        			|| this.slideshow_window.document.readyState === 'complete')
+	        			&& this.slideshow_window.document.body !== null
+	        			&& this.slideshow_window.document.body.innerHTML.length > 0
+	        			&& !$(this.slideshow_window.document.body).hasClass("slideshow-initialized") ){
+	        			
+	        			// Add a placeholder to track whether the CSS was loaded
+	        			$(this.slideshow_window.document.body).addClass("slideshow-initialized");
+	        			
+	        			// Load the CSS for the progress indicator
+	        			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
+	        			
+	               	 	// Start the progress indicator
+	        			if( !this.isInternetExplorer() ){
+		               	 	NProgress.configure({
+		               	 							showSpinner: false,
+		               	 							document: this.slideshow_window.document
+		               	 						});
+		               	 	
+		               	 	this.slideshow_progress_bar_created = true;
+	        			}
+	        	    	
+	        	    	// Hide the chrome if requested
+	        	    	if( this.slideshow_hide_chrome ){
+	        	    		this.addStylesheet("../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
+	        	    		console.info("Successfully loaded the stylesheet for hiding chrome");
+	        	    	}
+	        	    	
+	        	    	// Invert the colors if requested
+	        	    	if( this.slideshow_invert_colors ){
+	        	    		this.invertDocumentColors(this.slideshow_window);
+	        	    		console.info("Inverted the colors successfully");
+	        	    	}
+	        	    	
+	        	    	// Hide the loading frame
+	        	    	setTimeout(function(){
+	        	    		console.info("Hiding the loading frame");
+	        	    		this.hideLoadingFrame();
+	        	    		this.slideshow_view_ready = this.getNowTime();
+	        	    	}.bind(this), 2000);
+	        	       
+	        	    }
+        		}
+        		catch (DOMException){
         			clearInterval(this.ready_state_check_interval);
-        			return;
+        			
+    	    		console.info("Hiding the loading frame");
+    	    		this.hideLoadingFrame();
+    	    		this.slideshow_view_ready = this.getNowTime();
         		}
         		
-        		// See if the document is ready and update it if it is
-        		if( (this.slideshow_window.document.readyState === 'loaded'
-        			|| this.slideshow_window.document.readyState === 'interactive'
-        			|| this.slideshow_window.document.readyState === 'complete')
-        			&& this.slideshow_window.document.body !== null
-        			&& this.slideshow_window.document.body.innerHTML.length > 0
-        			&& !$(this.slideshow_window.document.body).hasClass("slideshow-initialized") ){
-        			
-        			// Add a placeholder to track whether the CSS was loaded
-        			$(this.slideshow_window.document.body).addClass("slideshow-initialized");
-        			
-        			// Load the CSS for the progress indicator
-        			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
-        			
-               	 	// Start the progress indicator
-        			if( !this.isInternetExplorer() ){
-	               	 	NProgress.configure({
-	               	 							showSpinner: false,
-	               	 							document: this.slideshow_window.document
-	               	 						});
-	               	 	
-	               	 	this.slideshow_progress_bar_created = true;
-        			}
-        	    	
-        	    	// Hide the chrome if requested
-        	    	if( this.slideshow_hide_chrome ){
-        	    		this.addStylesheet("../../static/app/slideshow/css/HideChrome.css", this.slideshow_window.document);
-        	    		console.info("Successfully loaded the stylesheet for hiding chrome");
-        	    	}
-        	    	
-        	    	// Invert the colors if requested
-        	    	if( this.slideshow_invert_colors ){
-        	    		this.invertDocumentColors(this.slideshow_window);
-        	    		console.info("Inverted the colors successfully");
-        	    	}
-        	    	
-        	    	// Hide the loading frame
-        	    	setTimeout(function(){
-        	    		console.info("Hiding the loading frame");
-        	    		this.hideLoadingFrame();
-        	    		this.slideshow_view_ready = this.getNowTime();
-        	    	}.bind(this), 2000);
-        	       
-        	    }
         	}.bind(this), 200);
         	
         	// Reset the time that the view was loaded
