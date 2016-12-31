@@ -845,7 +845,12 @@ define([
          */
         makeViewURL: function(view_meta, app, hide_controls){
         	
-        	var view = view_meta.name || view_meta.url;
+        	// Handle the case where this is a URL (which doesn't require special processing)
+        	if(view_meta.url !== undefined){
+        		return view_meta.url;
+        	}
+        	
+        	var view = view_meta.name;
         	var app_to_use = null;
         	
         	if(view_meta.app !== undefined){
@@ -890,20 +895,12 @@ define([
         		}
         	}
         	
-        	// Make the URL and return it
-        	var url;
-        	var is_absolute_url = false;
-        	
-        	if(view.startsWith("https://") || view.startsWith("http://")){
-        		is_absolute_url = true;
-        		url = view;
-        	}
-        	else if(app_to_use !== null){
+        	// If we have an app context, then use it 
+        	if(app_to_use !== null){
         		url = "../" + app_to_use + "/" + view;
         	}
         	else{
         		url = Splunk.util.make_full_url(view);
-        		
         	}
         	
         	// TODO Only add the hide controls options if no options already exist
