@@ -150,3 +150,8 @@ input[type="checkbox"]{
 	margin-bottom: 0px;
 	margin-top: 12px;
 }
+
+/* Make sure that the show frame has a background color. Otherwise, a page that doesn't declare will allow the underlying view to show through. */
+#showframe{
+    background-color: white;
+}
