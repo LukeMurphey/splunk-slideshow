@@ -957,11 +957,11 @@ define([
 	        	// Remove existing bindings if necessary (to prevent memory leaks)
 	        	if(this.slideshow_window && this.slideshow_window.document){
 	        		$(this.slideshow_window.document).unbind();
-	        		console.info("Unbinding the handlers for the show frame");
+	        		console.info("Unbound the overlay control handlers for the show frame");
 	        	}
         	}
         	catch(DOMException){
-        		return;
+        		// Ignore this exception. The window was likely displaying a page for another domain. 
         	}
         	
 			// Store a reference to the window
@@ -984,6 +984,8 @@ define([
 	            		
 	                }.bind(this));
 	            	
+	            	console.info("Bound the overlay control handlers for the show frame");
+	            	
 	            	// Handle the keypresses to go to the next view
 	            	$(this.slideshow_window.document).keydown(function(e) {
 	            		
@@ -1003,7 +1005,8 @@ define([
             	
         		}
             	catch (DOMException){
-            		// The browser blocked this because the page in the show is likel
+            		// The browser blocked this because the page in the show is likely showing a page from another domain
+            		console.info("The overlay control handlers for the show frame could not be loaded because the browser's security policy forbids it");
             	}
             	
         	}.bind(this), 2000);
