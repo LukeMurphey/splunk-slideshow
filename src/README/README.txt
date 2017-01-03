@@ -77,6 +77,6 @@ Change History
 | 2.4.2   | Making the app work on Splunk 6.5                                                                                |
 |         | Updating icon to work with newer version of Splunk-base                                                          |
 |---------|------------------------------------------------------------------------------------------------------------------|
-| 2.5.0   | Updating the icon                                                                                                |
+| 2.5.0   | Updated the icon                                                                                                 |
 |         | Added support for loading custom URLs                                                                            |
 +---------+------------------------------------------------------------------------------------------------------------------+
