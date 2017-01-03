@@ -1,4 +1,5 @@
 /*
+ * This view handles not only the creation of a slideshow but also the process of playing the show. Below is a summary of how some of the class functions.
  * 
  * ___________________________________________
  * How shows execute
@@ -245,15 +246,12 @@ define([
          */
         addCustomURL: function(){
         	
-        	var url = prompt("Enter a Splunk URL to add to the show", "");
+        	var url = prompt("Enter a URL to add to the show", "");
         	
         	// Stop if the user pressed cancel
         	if(url === null){
         		return;
         	}
-        	
-        	// Verify that the URL is valid
-        	// TODO
         	
         	// Add the URL to the list
         	this.loadCustomURL(url, true);
