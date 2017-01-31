@@ -841,7 +841,7 @@ define([
         /**
          * Make the URL to forward the user to.
          */
-        makeViewURL: function(view_meta, app, hide_controls){
+        makeViewURL: function(view_meta, hide_controls, app){
         	
         	// Handle the case where this is a URL (which doesn't require special processing)
         	if(view_meta.url !== undefined){
