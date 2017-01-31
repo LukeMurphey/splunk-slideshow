@@ -902,7 +902,7 @@ define([
         	}
         	
         	// TODO Only add the hide controls options if no options already exist
-        	if(is_absolute_url && hide_controls){
+        	if(hide_controls){
         		url = url + "?hideEdit=true&hideTitle=true&hideSplunkBar=true&hideAppBar=true&hideFooter=true&targetTop=true";
         	}
         	
