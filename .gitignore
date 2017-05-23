@@ -13,3 +13,6 @@ Icon?
 ehthumbs.db
 Thumbs.db
 /tmp/
+
+.vscode/*
+.ropeproject/*
