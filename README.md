@@ -5,4 +5,4 @@ A Splunk app that will rotate between dashboards on a frequency; useful for disp
 
 Download it from Splunk-base here: https://splunkbase.splunk.com/app/1799/.
 
-![alt](related/slideshow.gif)
+![alt](related/Slideshow.gif)
