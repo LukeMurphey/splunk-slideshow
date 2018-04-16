@@ -11,7 +11,7 @@
  *        |--- goToNextView(): gets the first page
  *               |--- changeView(): determines which view to show based on the contents of this.slideshow_views
  *               |--- makeViewURL(): makes the URL for the view to display
- *        |--- executeSlideshowCycle(): starts the slideshow cycle
+ *        |--- executeSlideshowCycle(): starts the slideshow cycle; will continue to call goToNextView() accordingly
  *     
  *     
  * ___________________________________________
@@ -139,8 +139,8 @@ define([
         	this.slideshow_view_ready = null;
         	this.slideshow_progress_bar_created = false;
         	this.slideshow_is_running = false;
-        	this.slideshow_invert_colors = false;
-		this.slideshow_hide_progressbar = false;
+			this.slideshow_invert_colors = false;
+			this.slideshow_hide_progressbar = false;
 
         	this.hide_controls_last_mouse_move = null;
         	this.ready_state_check_interval = null;
@@ -636,8 +636,8 @@ define([
         	var delay_readable = $('[name="delay"]', this.$el).val();
         	var delay = this.getSecondsFromReadableDuration( delay_readable );
         	var hide_chrome = $('[name="hide_chrome"]:first', this.$el).prop("checked");
-        	var invert_colors = $('[name="invert_colors"]:first', this.$el).prop("checked");
-        	var hide_progressbar = $('[name="hide_progressbar"]:first', this.$el).prop("checked");
+			var invert_colors = $('[name="invert_colors"]:first', this.$el).prop("checked");
+			var hide_progressbar = $('[name="hide_progressbar"]:first', this.$el).prop("checked");
         	
         	// Insert the parameters
         	saved_show.delay = delay;
@@ -803,8 +803,8 @@ define([
         	store.set('view_delay', saved_show.delay);
         	store.set('view_delay_readable', saved_show.delay_readable);
         	store.set('hide_chrome', saved_show.hide_chrome);
-        	store.set('invert_colors', saved_show.invert_colors);
-		store.set('hide_progressbar', saved_show.hide_progressbar);
+			store.set('invert_colors', saved_show.invert_colors);
+			store.set('hide_progressbar', saved_show.hide_progressbar);
         	
         	// Initialize the slideshow parameters so that we can run the show
         	this.slideshow_window = null;
@@ -812,8 +812,8 @@ define([
         	this.slideshow_views = saved_show.views;
         	this.slideshow_delay = saved_show.delay;
         	this.slideshow_hide_chrome = saved_show.hide_chrome;
-        	this.slideshow_invert_colors = saved_show.invert_colors;
-		this.slideshow_hide_progressbar = saved_show.hide_progressbar;
+			this.slideshow_invert_colors = saved_show.invert_colors;
+			this.slideshow_hide_progressbar = saved_show.hide_progressbar;
         	
         	// Note that the show has begun
         	this.slideshow_is_running = true;
@@ -1354,7 +1354,7 @@ define([
 	        			this.addStylesheet("../../static/app/slideshow/contrib/nprogress/nprogress.css", this.slideshow_window.document);
 	        			
 	               	 	// Start the progress indicator
-	        			if( ! (this.isInternetExplorer() || this.slideshow_hide_progressbar) ){
+	        			if( !(this.isInternetExplorer() || this.slideshow_hide_progressbar) ){
 		               	 	NProgress.configure({
 		               	 							showSpinner: false,
 		               	 							document: this.slideshow_window.document
@@ -1736,8 +1736,8 @@ define([
         	var selected_views = this.getStoredValueOrDefault('views', []);
         	var load_app_resources = this.getStoredValueOrDefault('load_app_resources', true);
         	var hide_chrome = this.getStoredValueOrDefault('hide_chrome', false);
-        	var invert_colors = this.getStoredValueOrDefault('invert_colors', false);
-		var hide_progressbar = this.getStoredValueOrDefault('hide_progressbar', false);
+			var invert_colors = this.getStoredValueOrDefault('invert_colors', false);
+			var hide_progressbar = this.getStoredValueOrDefault('hide_progressbar', false);
 
         	// Extract a list of just the view names
         	var selected_views_names = [];
