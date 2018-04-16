@@ -142,6 +142,15 @@ When the show is started, the selected pages will be displayed for the amount of
 	    <span class="help-inline"></span>
 	  </fieldset>
 	</div>
+
+	<div id="hide_progressbar_control_group" class="control-group">
+	  <fieldset>
+	    <input id="hide_progressbar" type="checkbox" name="hide_progressbar" <% if(hide_progressbar){ %>checked<% } %>>
+	    <label for="hide_progressbar">Hide progressbar</label>
+	    <span class="help-block">Hide progressbar which may reduce bandwidth consumption on slow/remote displays</span>
+	    <span class="help-inline"></span>
+	  </fieldset>
+	</div>
 		
 	<div class="controls">
 		<button id="start_show" class="btn btn-primary pull-right">Start show</button>
