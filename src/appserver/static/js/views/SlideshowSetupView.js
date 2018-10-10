@@ -247,7 +247,7 @@ define([
          */
         addCustomURL: function(){
         	
-        	var url = prompt("Enter a URL to add to the show", "");
+        	var url = prompt("Enter a URL to add to the show\n\nNote that the external URL might not work if the website limits iframes using X-Frame-Options", "");
         	
         	// Stop if the user pressed cancel
         	if(url === null){
