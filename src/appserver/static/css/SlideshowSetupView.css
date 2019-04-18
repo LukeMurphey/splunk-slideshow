@@ -130,7 +130,11 @@ input[type="checkbox"]{
 }
 
 .saved-slideshow-controls{
-	padding-top: 25px;
+	padding-top: 30px;
+}
+
+.saved-slideshow-controls > .btn{
+	padding: 8px;
 }
 
 #link, #autoplay-link{
