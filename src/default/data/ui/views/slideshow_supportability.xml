@@ -1,4 +1,4 @@
-<dashboard>
+<dashboard version='1.1'>
   <label>View Slideshow Supportability</label>
   <description>Indicates if views are likely supported within slideshows</description>
   <row>

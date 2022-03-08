@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 
-<form script="slideshow_setup.js" >
+<form version='1.1' script="slideshow_setup.js" >
 	<label>Setup a show</label>
 	
 	<row>
