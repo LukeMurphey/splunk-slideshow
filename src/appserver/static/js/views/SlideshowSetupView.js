@@ -58,7 +58,6 @@ define([
     "backbone",
     "splunkjs/mvc",
     "jquery",
-    "collections/SplunkDsBase",
     "splunkjs/mvc/simplesplunkview",
     "splunkjs/mvc/simpleform/input/dropdown",
     "splunkjs/mvc/simpleform/input/text",
@@ -69,7 +68,7 @@ define([
     "bootstrap_dualist",
     "nprogress",
     "css!../app/slideshow/contrib/bootstrap-duallist/bootstrap-duallistbox.min.css",
-], function(_, Backbone, mvc, $, SplunkDsBaseCollection, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store, KVStore){
+], function(_, Backbone, mvc, $, SimpleSplunkView, DropdownInput, TextInput, SlideshowSetupPageTemplate, store, KVStore){
 	
 	if(KVStore && KVStore.Model){
 		var SavedSlideshowModel = KVStore.Model.extend({
